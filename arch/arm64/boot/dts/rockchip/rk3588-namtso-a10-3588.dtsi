@@ -27,6 +27,15 @@
 		};
 	};
 
+	namtso_wdt {
+		compatible = "linux,wdt-namtso";
+		status = "okay";
+		hw_margin_ms = <500>;
+		hw-gpios = <&gpio0 RK_PB0 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&wdt_gpio>;
+	};
+
 	leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
