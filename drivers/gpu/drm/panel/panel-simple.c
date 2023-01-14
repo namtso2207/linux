@@ -4676,7 +4676,7 @@ static int panel_simple_of_get_desc_data(struct device *dev,
 	int len;
 	int err;
 //printk("hlm namtso_mipi_id=%d\n",namtso_mipi_id);
-if(namtso_mipi_id == 1){
+if(namtso_mipi_id == 2){
 	if (of_child_node_is_present(np, "display-timings1")) {
 		struct drm_display_mode *mode;
 
@@ -5330,7 +5330,9 @@ static int __init namtso_mipi_id_para_setup(char *str)
 {
         if (str != NULL)
                 sprintf(lcd_propname, "%s", str);
-		if(!strcmp(lcd_propname, "1"))
+		if(!strcmp(lcd_propname, "2"))
+			namtso_mipi_id = 2;
+		else if(!strcmp(lcd_propname, "1"))
 			namtso_mipi_id = 1;
 		else
 			namtso_mipi_id = 0;
