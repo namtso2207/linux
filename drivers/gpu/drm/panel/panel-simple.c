@@ -5334,7 +5334,7 @@ static int __init panel_simple_init(void)
 static char lcd_propname[1] = "0";
 static int __init namtso_mipi_id_para_setup(char *str)
 {
-        if (str != NULL)
+        if (str != NULL){
                 sprintf(lcd_propname, "%s", str);
 		if(!strcmp(lcd_propname, "3"))
 			namtso_mipi_id = 3;
@@ -5344,6 +5344,7 @@ static int __init namtso_mipi_id_para_setup(char *str)
 			namtso_mipi_id = 1;
 		else
 			namtso_mipi_id = 0;
+	}
         //printk("hlm xx lcd_propname: %s  namtso_mipi_id: %d\n", lcd_propname, namtso_mipi_id);
         return 0;
 }
