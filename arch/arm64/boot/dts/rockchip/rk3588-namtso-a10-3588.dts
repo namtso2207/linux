@@ -8,7 +8,7 @@
 
 #include "dt-bindings/usb/pd.h"
 #include "rk3588.dtsi"
-#include "rk3588-rk806-dual.dtsi"
+#include "rk3588-rk806-single.dtsi"
 #include "rk3588-linux.dtsi"
 #include "rk3588-namtso-a10-3588.dtsi"
 #include "rk3588-namtso-a10-3588-camera.dtsi"
@@ -136,7 +136,7 @@
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
 		gpio = <&gpio4 RK_PD0 GPIO_ACTIVE_HIGH>;
-		vin-supply = <&vcc5v0_usb>;
+		vin-supply = <&vcc_5v0>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&typec5v_pwren>;
 	};
@@ -170,7 +170,7 @@
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
 		gpio = <&gpio4 RK_PB0 GPIO_ACTIVE_HIGH>;
-		vin-supply = <&vcc5v0_usb>;
+		vin-supply = <&vcc_5v0>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&vcc5v0_host_en>;
 	};
@@ -202,6 +202,15 @@
 		enable-active-high;
 	};
 
+	vcc_3v3_s0: vcc-3v3-s0 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc_3v3_s0";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		vin-supply = <&vcc_3v3_s3>;
+	};
 	wireless_bluetooth: wireless-bluetooth {
 		compatible = "bluetooth-platdata";
 		clocks = <&hym8563>;
@@ -406,6 +415,71 @@
 	status = "okay";
 };
 
+&i2c0 {
+    status = "okay";
+
+    pinctrl-names = "default";
+    pinctrl-0 = <&i2c0m2_xfer>;
+
+    vdd_cpu_big0_s0: vdd_cpu_big0_mem_s0: rk8602@42 {
+        compatible = "rockchip,rk8602";
+        reg = <0x42>;
+        vin-supply = <&vcc4v0_sys>;
+        regulator-compatible = "rk860x-reg";
+        regulator-name = "vdd_cpu_big0_s0";
+        regulator-min-microvolt = <550000>;
+        regulator-max-microvolt = <1050000>;
+        regulator-ramp-delay = <12500>;
+        rockchip,suspend-voltage-selector = <1>;
+        regulator-boot-on;
+        regulator-always-on;
+        regulator-state-mem {
+            regulator-off-in-suspend;
+        };
+    };
+
+    vdd_cpu_big1_s0: vdd_cpu_big1_mem_s0: rk8603@43 {
+        compatible = "rockchip,rk8603";
+        reg = <0x43>;
+        vin-supply = <&vcc4v0_sys>;
+        regulator-compatible = "rk860x-reg";
+        regulator-name = "vdd_cpu_big1_s0";
+        regulator-min-microvolt = <550000>;
+        regulator-max-microvolt = <1050000>;
+        regulator-ramp-delay = <12500>;
+        rockchip,suspend-voltage-selector = <1>;
+        regulator-boot-on;
+        regulator-always-on;
+        regulator-state-mem {
+            regulator-off-in-suspend;
+        };
+    };
+};
+
+&i2c1 {
+	status = "okay";
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c1m2_xfer>;
+
+	vdd_npu_s0: vdd_npu_mem_s0: rk8602@42 {
+		compatible = "rockchip,rk8602";
+		reg = <0x42>;
+		vin-supply = <&vcc4v0_sys>;
+		regulator-compatible = "rk860x-reg";
+		regulator-name = "vdd_npu_s0";
+		regulator-min-microvolt = <550000>;
+		regulator-max-microvolt = <950000>;
+		regulator-ramp-delay = <12500>;
+		rockchip,suspend-voltage-selector = <1>;
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-state-mem {
+			regulator-off-in-suspend;
+		};
+	};
+};
+
 &i2c2 {
 	status = "okay";
 
@@ -548,19 +622,19 @@
 &pcie2x1l0 {
 	reset-gpios = <&gpio4 RK_PA5 GPIO_ACTIVE_HIGH>;
 	rockchip,skip-scan-in-resume;
-	status = "okay";
+	status = "disabled";
 };
 
 &pcie2x1l1 {
 	reset-gpios = <&gpio4 RK_PA2 GPIO_ACTIVE_HIGH>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&rtl8111_isolate>;
-	status = "okay";
+	status = "disabled";
 };
 
 &pcie30phy {
 	rockchip,pcie30-phymode = <PHY_MODE_PCIE_AGGREGATION>;
-	status = "okay";
+	status = "disabled";
 };
 
 &pcie3x4 {
@@ -568,7 +642,7 @@
 	vpcie3v3-supply = <&vcc3v3_pcie30>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pcie30x4_clkreqn_m1>;
-	status = "okay";
+	status = "disabled";
 };
 
 &pinctrl {
@@ -681,6 +755,17 @@
 
 		wifi_poweren_gpio: wifi-poweren-gpio {
 			rockchip,pins = <3 RK_PB1 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+	vcc_5v0 {
+		vcc5v0_en: vcc5v0-en {
+			rockchip,pins = <2 RK_PB3 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	vcc_ext {
+		vcc_3v3_ext_en: vcc-3v3-ext-en {
+			rockchip,pins = <0 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 };
