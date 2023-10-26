@@ -163,33 +163,6 @@
 		pinctrl-0 = <&vcc5v0_host_en>;
 	};
 
-	vcc_mipicsi0: vcc-mipicsi0-regulator {
-		compatible = "regulator-fixed";
-		gpio = <&gpio1 RK_PB1 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&mipicsi0_pwr>;
-		regulator-name = "vcc_mipicsi0";
-		enable-active-high;
-	};
-
-	vcc_mipicsi1: vcc-mipicsi1-regulator {
-		compatible = "regulator-fixed";
-		gpio = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&mipicsi1_pwr>;
-		regulator-name = "vcc_mipicsi1";
-		enable-active-high;
-	};
-
-	vcc_mipidcphy0: vcc-mipidcphy0-regulator {
-		compatible = "regulator-fixed";
-		gpio = <&gpio2 RK_PC4 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&mipidcphy0_pwr>;
-		regulator-name = "vcc_mipidcphy0";
-		enable-active-high;
-	};
-
 	vcc_3v3_s0: vcc-3v3-s0 {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc_3v3_s0";
@@ -592,7 +565,7 @@
 };
 
 &mipi_dcphy1 {
-	status = "disabled";
+	status = "okay";
 };
 
 &pcie2x1l0 {
@@ -622,24 +595,6 @@
 };
 
 &pinctrl {
-	cam {
-		mipicsi0_pwr: mipicsi0-pwr {
-			rockchip,pins =
-				/* camera power en */
-				<1 RK_PB1 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-		mipicsi1_pwr: mipicsi1-pwr {
-			rockchip,pins =
-				/* camera power en */
-				<1 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-		mipidcphy0_pwr: mipidcphy0-pwr {
-			rockchip,pins =
-				/* camera power en */
-				<2 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
 	dp {
 		dp1_hpd: dp1-hpd {
 			rockchip,pins = <1 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>;
