@@ -68,18 +68,6 @@
 		>;
 	};
 
-	hdmiin-sound {
-		compatible = "rockchip,hdmi";
-		rockchip,mclk-fs = <128>;
-		rockchip,format = "i2s";
-		rockchip,bitclock-master = <&hdmirx_ctrler>;
-		rockchip,frame-master = <&hdmirx_ctrler>;
-		rockchip,card-name = "rockchip,hdmiin";
-		rockchip,cpu = <&i2s7_8ch>;
-		rockchip,codec = <&hdmirx_ctrler 0>;
-		rockchip,jack-det;
-	};
-
 	pcie20_avdd0v85: pcie20-avdd0v85 {
 		compatible = "regulator-fixed";
 		regulator-name = "pcie20_avdd0v85";
@@ -297,7 +285,7 @@
  * when dsi0 is enabled
  */
 &dsi0 {
-	status = "okay";
+	status = "disabled";
 };
 
 &dsi0_in_vp2 {
@@ -305,7 +293,7 @@
 };
 
 &dsi0_in_vp3 {
-	status = "okay";
+	status = "disabled";
 };
 
 &dsi0_panel {
@@ -369,21 +357,17 @@
 	status = "okay";
 };
 
-&hdmi0 {
+&vop {
+	assigned-clocks = <&cru ACLK_VOP>;
+	assigned-clock-rates = <800000000>;
+};
+
+&hdmi1 {
 	enable-gpios = <&gpio4 RK_PB1 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
-&hdmi0_in_vp0 {
-	status = "okay";
-};
-
-&hdmi0_sound {
-	status = "okay";
-};
-
-&hdmi1 {
-	enable-gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
+&hdmi1_in_vp0 {
 	status = "okay";
 };
 
@@ -395,24 +379,13 @@
 	status = "okay";
 };
 
-/* Should work with at least 128MB cma reserved above. */
-&hdmirx_ctrler {
-	status = "okay";
-
-	#sound-dai-cells = <1>;
-	/* Effective level used to trigger HPD: 0-low, 1-high */
-	hpd-trigger-level = <1>;
-	hdmirx-det-gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_LOW>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&hdmim1_rx &hdmirx_det>;
-};
-
-&hdptxphy_hdmi0 {
-	status = "okay";
-};
-
 &hdptxphy_hdmi1 {
 	status = "okay";
+};
+
+&route_hdmi1 {
+	status = "okay";
+	connect = <&vp0_out_hdmi1>;
 };
 
 &i2c0 {
@@ -670,12 +643,6 @@
 		};
 	};
 
-	hdmi {
-		hdmirx_det: hdmirx-det {
-			rockchip,pins = <2 RK_PB5 RK_FUNC_GPIO &pcfg_pull_up>;
-		};
-	};
-
 	headphone {
 		hp_det: hp-det {
 			rockchip,pins = <1 RK_PD5 RK_FUNC_GPIO &pcfg_pull_none>;
@@ -780,23 +747,13 @@
 };
 
 &route_dsi0 {
-	status = "okay";
+	status = "disabled";
 	connect = <&vp3_out_dsi0>;
 };
 
 &route_dsi1 {
 	status = "disabled";
 	connect = <&vp3_out_dsi1>;
-};
-
-&route_hdmi0 {
-	status = "okay";
-	connect = <&vp0_out_hdmi0>;
-};
-
-&route_hdmi1 {
-	status = "okay";
-	connect = <&vp1_out_hdmi1>;
 };
 
 &sata0 {
