@@ -24,6 +24,7 @@
 
 /* Device registers */
 #define MCU_BOOT_EN_WOL_REG		  0x21
+#define MCU_BOOT_INIT_WOL		   		0x85
 //#define MCU_PWR_OFF_CMD_REG       0x80
 #define MCU_SHUTDOWN_NORMAL_REG   0x80
 
@@ -206,6 +207,20 @@ static int is_mcu_fan_control_supported(void)
 			return 0;
 	}
 
+}
+
+int init_wol_reg(void)
+{
+	unsigned char status = 1;
+	return mcu_i2c_write_regs(g_mcu_data->client, MCU_BOOT_INIT_WOL, &status, 1);
+}
+
+static bool is_mcu_wol_supported(void)
+{
+	if (NAMTSO_BOARD_A10_3588 == g_mcu_data->board) {
+		return 1;
+	}
+	return 0;
 }
 
 static int is_mcu_mculed_control_supported(void)

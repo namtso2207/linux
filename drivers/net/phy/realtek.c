@@ -359,6 +359,7 @@ static int rtl8211c_config_init(struct phy_device *phydev)
 }
 
 int wol_get_ctrl_gpio(void);
+int init_wol_reg(void);
 static int rtl8211f_config_init(struct phy_device *phydev)
 {
 	struct device *dev = &phydev->mdio.dev;
@@ -447,6 +448,7 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 			mac_addr[i] = phydev->attached_dev->dev_addr[i];
 		}
 	}
+	init_wol_reg();
 
 	return 0;
 }
