@@ -228,14 +228,17 @@
 	};
 };
 
+/* pcie2x1l2 */
 &combphy0_ps {
 	status = "okay";
 };
 
+/* pcie2x1l0 */
 &combphy1_ps {
 	status = "okay";
 };
 
+/* pcie2x1l1 */
 &combphy2_psu {
 	status = "okay";
 };
@@ -695,21 +698,25 @@
 };
 
 &pcie2x1l0 {
+	reset-gpios = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>;
+	vpcie3v3-supply = <&vcc3v3_pcie20>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie2x1l0_gpio>;
+	rockchip,skip-scan-in-resume;
+	rockchip,perst-inactive-ms = <500>;
+	status = "okay";
+};
+
+&pcie2x1l2 {
 	reset-gpios = <&gpio3 RK_PD1 GPIO_ACTIVE_HIGH>;
 	pinctrl-names = "default";
-	vpcie3v3-supply = <&vcc3v3_pcie20>;
-	pinctrl-0 = <&pcie2x1l0_gpio>;
+	pinctrl-0 = <&pcie2x1l1_gpio>;
 	rockchip,skip-scan-in-resume;
 	status = "okay";
 };
 
-&pcie2x1l1 {
-	reset-gpios = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>;
-	pinctrl-names = "default";
-	vpcie3v3-supply = <&vcc3v3_pcie20>;
-	pinctrl-0 = <&pcie2x1l1_gpio>;
-	rockchip,skip-scan-in-resume;
-	status = "okay";
+&sata0 {
+	status = "disabled";
 };
 
 &pcie30phy {
