@@ -189,6 +189,18 @@
                 #clock-cells = <0>;
                 clock-frequency = <8000000>;
     };
+
+	link_io_pwren: link-io-pwren {
+		compatible = "regulator-fixed";
+		regulator-name = "link_io_pwren";
+		regulator-boot-on;
+		regulator-always-on;
+		enable-active-high;
+		gpio = <&gpio4 RK_PA0 GPIO_ACTIVE_HIGH>;
+		vin-supply = <&vcc_1v8_s0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&link_io_pwren_gpio>;
+	};
 };
 
 &pcie2x1l0 {
@@ -791,6 +803,12 @@
 		wk2204_irq_gpio: wk2204-irq-gpio {
 			rockchip,pins = <1 RK_PA7 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
+	};
+
+	link {
+	        link_io_pwren_gpio: link-io-pwren-gpio {
+	            rockchip,pins = <4 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
+	     };
 	};
 };
 
