@@ -60,20 +60,6 @@
 		hw-gpios = <&gpio0 RK_PB0 GPIO_ACTIVE_HIGH>;
 	};
 
-	fan: pwm-fan {
-		compatible = "pwm-fan";
-		#cooling-cells = <2>;
-		pwms = <&pwm9 0 50000 0>;
-		cooling-levels = <0 50 100 150 200 255>;
-		rockchip,temp-trips = <
-			50000	1
-			55000	2
-			60000	3
-			65000	4
-			70000	5
-		>;
-	};
-
 	vbus5v0_typec: vbus5v0-typec {
 		compatible = "regulator-fixed";
 		regulator-name = "vbus5v0_typec";
@@ -894,11 +880,6 @@
 
 &pwm0 {
 	pinctrl-0 = <&pwm0m1_pins>;
-	status = "okay";
-};
-
-&pwm9 {
-	pinctrl-0 = <&pwm9m1_pins>;
 	status = "okay";
 };
 
