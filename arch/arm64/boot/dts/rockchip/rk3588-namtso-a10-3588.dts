@@ -885,6 +885,14 @@
 	status = "okay";
 };
 
+&can1 {
+        status = "okay";
+        assigned-clocks = <&cru CLK_CAN1>;
+        assigned-clock-rates = <200000000>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&can1m1_pins>;
+};
+
 &pwm0 {
 	pinctrl-0 = <&pwm0m1_pins>;
 	status = "okay";
