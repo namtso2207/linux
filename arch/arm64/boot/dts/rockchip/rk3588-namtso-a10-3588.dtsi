@@ -1123,8 +1123,9 @@
 	cap-sd-highspeed;
 	disable-wp;
 	sd-uhs-sdr104;
+	vmmc-supply = <&vcc_sd>;
 	vqmmc-supply = <&vccio_sd_s0>;
-	status = "disabled";
+	status = "okay";
 };
 
 &tsadc {
