@@ -185,6 +185,28 @@
 	status = "okay";
 };
 
+&hdmi1 {
+	enable-gpios = <&gpio4 RK_PB1 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
+&hdmi1_in_vp0 {
+	status = "okay";
+};
+
+&hdmi1_sound {
+	status = "okay";
+};
+
+&hdptxphy_hdmi1 {
+	status = "okay";
+};
+
+&route_hdmi1 {
+	status = "okay";
+	connect = <&vp0_out_hdmi1>;
+};
+
 &dsi0 {
 	status = "okay";
 };
@@ -405,36 +427,7 @@
 	status = "okay";
 };
 
-&hdmi1 {
-	enable-gpios = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
-	status = "okay";
-};
-
-&hdmi1_in_vp1 {
-	status = "okay";
-};
-
-&hdmi1_sound {
-	status = "okay";
-};
-
-/* Should work with at least 128MB cma reserved above. */
-&hdmirx_ctrler {
-	status = "okay";
-
-	#sound-dai-cells = <1>;
-	/* Effective level used to trigger HPD: 0-low, 1-high */
-	hpd-trigger-level = <1>;
-	hdmirx-det-gpios = <&gpio2 RK_PB5 GPIO_ACTIVE_LOW>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&hdmim1_rx &hdmirx_det>;
-};
-
 &hdptxphy_hdmi0 {
-	status = "okay";
-};
-
-&hdptxphy_hdmi1 {
 	status = "okay";
 };
 
@@ -541,12 +534,6 @@
 	dp {
 		dp1_hpd: dp1-hpd {
 			rockchip,pins = <1 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
-	hdmi {
-		hdmirx_det: hdmirx-det {
-			rockchip,pins = <2 RK_PB5 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 	};
 
@@ -670,9 +657,9 @@
 	connect = <&vp0_out_hdmi0>;
 };
 
-&route_hdmi1 {
+/* hdmi1_sound */
+&i2s6_8ch {
 	status = "okay";
-	connect = <&vp1_out_hdmi1>;
 };
 
 &sata0 {
