@@ -168,6 +168,18 @@
 		vin-supply = <&vcc4v0_sys>;
 	};
 
+	link_io_pwren: link-io-pwren {
+		compatible = "regulator-fixed";
+		regulator-name = "link_io_pwren";
+		regulator-boot-on;
+		regulator-always-on;
+		enable-active-high;
+		gpio = <&gpio4 RK_PA0 GPIO_ACTIVE_HIGH>;
+		vin-supply = <&vcc_1v8_s0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&link_io_pwren_gpio>;
+	};
+
 	wireless_bluetooth: wireless-bluetooth {
 		compatible = "bluetooth-platdata";
 		clocks = <&pt7c4363>;
@@ -878,6 +890,12 @@
 	wol {
 		wol_gpio: wol-gpio {
 			rockchip,pins = <0 RK_PC2 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+
+	link {
+		link_io_pwren_gpio: link-io-pwren-gpio {
+			rockchip,pins = <4 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 };
