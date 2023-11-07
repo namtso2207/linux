@@ -224,6 +224,16 @@
 		vin-supply = <&vcc12v_dcin>;
 	};
 
+	vcc4v0_sys: vcc4v0-sys {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc4v0_sys";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-min-microvolt = <4000000>;
+		regulator-max-microvolt = <4000000>;
+		vin-supply = <&vcc5v0_sys>;
+	};
+
 	vcc5v0_usb: vcc5v0-usb {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc5v0_usb";
@@ -233,6 +243,16 @@
 		regulator-max-microvolt = <5000000>;
 		vin-supply = <&vcc5v0_usbdcin>;
 	};
+
+	vcc_1v1_nldo_s3: vcc-1v1-nldo-s3 {
+	        compatible = "regulator-fixed";
+	        regulator-name = "vcc_1v1_nldo_s3";
+	        regulator-always-on;
+	        regulator-boot-on;
+	        regulator-min-microvolt = <1100000>;
+	        regulator-max-microvolt = <1100000>;
+	        vin-supply = <&vcc4v0_sys>;
+    };
 };
 
 &av1d_mmu {
