@@ -9,9 +9,8 @@
 #include "rk3588.dtsi"
 #include "rk3588-namtso-a10-3588.dtsi"
 #include "rk3588-rk806-single.dtsi"
-#include "rk3588-evb1-imx415.dtsi"
 #include "rk3588-android.dtsi"
-
+#include "rk3588-namtso-a10-3588-camera.dtsi"
 / {
 	model = "Namtso A10-3588";
 	compatible = "namtso,a10-3588", "rockchip,rk3588";
