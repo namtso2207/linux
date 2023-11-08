@@ -20,6 +20,7 @@
 #include <linux/slab.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
+#include <linux/regulator/consumer.h>
 
 /* Device registers */
 #define MCU_PWR_OFF_CMD_REG       0x80
@@ -52,6 +53,7 @@
 #define MCU_FAN_SPEED_MID_V2            0x48
 #define MCU_FAN_SPEED_HIGH_V2           0x64
 
+struct regulator *reg_vcc_3v3_ext;
 enum namtso_board {
 	KHADAS_BOARD_NONE = 0,
 	KHADAS_BOARD_EDGE2
@@ -673,6 +675,7 @@ static int mcu_parse_dt(struct device *dev)
 
 static int mcu_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
+	int ret;
 	printk("%s\n", __func__);
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
@@ -695,7 +698,8 @@ static int mcu_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	mcu_fan_level_set(&g_mcu_data->fan_data, 0);
 	schedule_delayed_work(&g_mcu_data->fan_data.work, MCU_FAN_LOOP_SECS);
 	create_mcu_attrs();
-
+	reg_vcc_3v3_ext = devm_regulator_get(&client->dev, "vcc_3v3_ext");
+	ret = regulator_enable(reg_vcc_3v3_ext);
 	return 0;
 }
 
@@ -714,16 +718,20 @@ static void namtso_fan_shutdown(struct i2c_client *client)
 #ifdef CONFIG_PM_SLEEP
 static int namtso_fan_suspend(struct device *dev)
 {
+	int ret;
     cancel_delayed_work(&g_mcu_data->fan_data.work);
     mcu_fan_level_set(&g_mcu_data->fan_data, 0);
 
+	ret = regulator_disable(reg_vcc_3v3_ext);
     return 0;
 }
 
 static int namtso_fan_resume(struct device *dev)
 {
+	int ret;
     namtso_fan_set(&g_mcu_data->fan_data);
 
+	ret = regulator_enable(reg_vcc_3v3_ext);
     return 0;
 }
 
