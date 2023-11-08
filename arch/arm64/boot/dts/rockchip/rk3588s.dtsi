@@ -5647,11 +5647,7 @@
 		rockchip,clk-trcm = <1>;
 		pinctrl-names = "default", "idle", "clk";
 		pinctrl-0 = <&i2s0_sdi0
-			     &i2s0_sdi1
-			     &i2s0_sdi2
-			     &i2s0_sdi3
-			     &i2s0_sdo0
-			     &i2s0_sdo1>;
+			     &i2s0_sdo0>;
 		pinctrl-1 = <&i2s0_idle>;
 		pinctrl-2 = <&i2s0_lrck
 			     &i2s0_sclk>;
