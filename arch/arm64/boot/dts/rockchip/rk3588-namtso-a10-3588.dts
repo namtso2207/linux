@@ -183,6 +183,12 @@
 		//WIFI,poweren_gpio = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;
 		status = "okay";
 	};
+
+	mcp251x_clk: mcp251x-clk {
+                compatible = "fixed-clock";
+                #clock-cells = <0>;
+                clock-frequency = <8000000>;
+    };
 };
 
 &pcie2x1l0 {
@@ -752,6 +758,26 @@
 		vcc_3v3_ext_en: vcc-3v3-ext-en {
 			rockchip,pins = <0 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
+	};
+};
+
+&spi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi1m0_cs0 &spi1m0_pins>;
+	num-cs = <1>;
+	status = "okay";
+
+	spi_can@0 {
+		compatible =  "microchip,mcp2515";
+		reg = <0x00>;
+		clocks = <&mcp251x_clk>;
+		clock-frequency = <8000000>;
+		spi-max-frequency = <10000000>;
+		poll_mode = <0>;
+		enable_dma = <1>;
+		vdd-supply = <&vcc_3v3_ext>;
+		xceiver-supply = <&vcc_3v3_ext>;
+		status = "okay";
 	};
 };
 
