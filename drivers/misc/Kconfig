@@ -515,6 +515,12 @@ config KHADAS_MCU
         help
           This driver allow to control MCU
 
+config WK2204_UART_HUB
+	tristate "wk2xxx uart hub driver"
+	default n
+	help
+	  This driver allow to wk2xxx uart hub.
+
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"

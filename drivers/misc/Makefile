@@ -4,6 +4,7 @@
 #
 
 KBUILD_CFLAGS += -Wno-unused-function
+obj-$(CONFIG_WK2204_UART_HUB) += wk2xxx_i2c.o
 obj-y				+= rk628/
 obj-$(CONFIG_RK803)		+= rk803.o
 obj-y				+= rockchip/
