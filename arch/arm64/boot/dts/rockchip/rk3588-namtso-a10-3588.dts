@@ -595,17 +595,16 @@
 	};
 };
 
-&i2c6 {
+&i2c4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c5m0_xfer>;
 	status = "okay";
-	gt1x: gt1x@14 {
-		compatible = "goodix,gt1x";
-		reg = <0x14>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&touch_gpio>;
-		goodix,rst-gpio = <&gpio0 RK_PD2 GPIO_ACTIVE_HIGH>;
-		goodix,irq-gpio = <&gpio0 RK_PD3 IRQ_TYPE_LEVEL_LOW>;
-		power-supply = <&vcc3v3_lcd_n>;
-	};
+};
+
+&i2c5 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c4m3_xfer>;
+	status = "okay";
 };
 
 &i2c7 {
