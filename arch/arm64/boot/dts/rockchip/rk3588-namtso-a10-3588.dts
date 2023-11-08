@@ -43,6 +43,21 @@
             startup-delay-us = <5000>;
     };
 
+	vcc3v3_pcie30: vcc3v3-pcie30 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc3v3_pcie30";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpios = <&gpio2 RK_PC5 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&vcc3vc_clken_gpio>;
+		enable-active-high;
+		regulator-boot-on;
+		regulator-always-on;
+		startup-delay-us = <5000>;
+		vin-supply = <&vcc4v0_sys>;
+	};
+
 	pcie20_avdd0v85: pcie20-avdd0v85 {
 		compatible = "regulator-fixed";
 		regulator-name = "pcie20_avdd0v85";
@@ -93,17 +108,6 @@
 		vin-supply = <&vcc_5v0>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&typec5v_pwren>;
-	};
-
-	vcc3v3_pcie30: vcc3v3-pcie30 {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc3v3_pcie30";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		enable-active-high;
-		gpios = <&gpio3 RK_PC3 GPIO_ACTIVE_HIGH>;
-		startup-delay-us = <5000>;
-		vin-supply = <&vcc12v_dcin>;
 	};
 
 	vcc5v0_host: vcc5v0-host {
@@ -203,16 +207,6 @@
 	};
 };
 
-&pcie2x1l0 {
-	reset-gpios = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>;
-	vpcie3v3-supply = <&vcc3v3_pcie20>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pcie2x1l0_gpio>;
-	rockchip,skip-scan-in-resume;
-	rockchip,perst-inactive-ms = <500>;
-	status = "okay";
-};
-
 &backlight_mipi1 {
 	pwms = <&pwm13 0 25000 0>;
 	power-supply = <&vcc3v3_lcd1_en>;
@@ -225,14 +219,17 @@
 	status = "okay";
 };
 
+/* pcie2x1l2 */
 &combphy0_ps {
 	status = "okay";
 };
 
+/* pcie2x1l0 */
 &combphy1_ps {
 	status = "okay";
 };
 
+/* pcie2x1l1 */
 &combphy2_psu {
 	status = "okay";
 };
@@ -650,16 +647,26 @@
 };
 
 &pcie2x1l0 {
-	reset-gpios = <&gpio4 RK_PA5 GPIO_ACTIVE_HIGH>;
+	reset-gpios = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>;
+	vpcie3v3-supply = <&vcc3v3_pcie20>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie2x1l0_gpio>;
+	rockchip,skip-scan-in-resume;
+	rockchip,perst-inactive-ms = <500>;
+	status = "okay";
+};
+
+
+&pcie2x1l2 {
+	reset-gpios = <&gpio3 RK_PD1 GPIO_ACTIVE_HIGH>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie2x1l1_gpio>;
 	rockchip,skip-scan-in-resume;
 	status = "okay";
 };
 
-&pcie2x1l1 {
-	reset-gpios = <&gpio4 RK_PA2 GPIO_ACTIVE_HIGH>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&rtl8111_isolate>;
-	status = "okay";
+&sata0 {
+	status = "disabled";
 };
 
 &pcie30phy {
@@ -671,7 +678,7 @@
 	reset-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_HIGH>;
 	vpcie3v3-supply = <&vcc3v3_pcie30>;
 	pinctrl-names = "default";
-	pinctrl-0 = <&pcie30x4_clkreqn_m1>;
+	pinctrl-0 = <&pcie3x4_gpio>;
 	status = "okay";
 };
 
@@ -715,12 +722,6 @@
 		};
 		lcd2_en: lcd2-en {
 			rockchip,pins = <3 RK_PD2 RK_FUNC_GPIO &pcfg_pull_up>;
-		};
-	};
-
-	pcie30x4 {
-		pcie30x4_clkreqn_m1: pcie30x4-clkreqn-m1 {
-			rockchip,pins = <4 RK_PB4 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 	};
 
@@ -784,6 +785,18 @@
 	pcie {
 		pcie2x1l0_gpio: pcie2x1l0-gpio {
 			rockchip,pins = <3 RK_PD1 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+
+		pcie2x1l1_gpio: pcie2x1l1-gpio {
+			rockchip,pins = <1 RK_PB4 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+
+		pcie3x4_gpio: pcie3x4-gpio {
+			rockchip,pins = <4 RK_PB6 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+
+		vcc3vc_clken_gpio: vcc3vc-clken-gpio {
+			rockchip,pins = <2 RK_PC5 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 	};
 
