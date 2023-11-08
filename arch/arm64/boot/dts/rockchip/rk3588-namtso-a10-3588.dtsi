@@ -27,6 +27,25 @@
 		};
 	};
 
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+
+		white_led {
+			gpios = <&gpio0 RK_PC7 GPIO_ACTIVE_HIGH>;
+			label = "white_led";
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+
+		ext_led {
+			gpios = <&gpio0 RK_PD0 GPIO_ACTIVE_HIGH>;
+			label = "ext_led";
+			linux,default-trigger = "off";
+			default-state = "on";
+		};
+	};
+
 	backlight: backlight {
 		compatible = "pwm-backlight";
 		brightness-levels = <
@@ -125,14 +144,6 @@
 		rockchip,cpu = <&spdif_tx5>;
 		rockchip,codec = <&dp1 1>;
 		rockchip,jack-det;
-	};
-
-	leds: leds {
-		compatible = "gpio-leds";
-		work_led: work {
-			gpios = <&gpio3 RK_PB7 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "heartbeat";
-		};
 	};
 
 	spdif_tx0_dc: spdif-tx0-dc {
