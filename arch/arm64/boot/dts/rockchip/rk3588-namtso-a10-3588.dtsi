@@ -1620,20 +1620,6 @@
 	status = "okay";
 };
 
-&i2s0_8ch {
-	status = "okay";
-	pinctrl-0 = <&i2s0_lrck
-		     &i2s0_sclk
-		     &i2s0_sdi0
-		     &i2s0_sdo0>;
-};
-
-&i2s2_2ch {
-	pinctrl-0 = <&i2s2m1_lrck &i2s2m1_sclk &i2s2m1_sdi &i2s2m1_sdo>;
-	rockchip,bclk-fs = <32>;
-	status = "disabled";
-};
-
 &iep {
 	status = "okay";
 };
