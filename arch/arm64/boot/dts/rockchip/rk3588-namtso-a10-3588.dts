@@ -844,6 +844,11 @@
         pinctrl-0 = <&can1m1_pins>;
 };
 
+&pwm0 {
+	pinctrl-0 = <&pwm0m1_pins>;
+	status = "okay";
+};
+
 &pwm10 {
 	pinctrl-0 = <&pwm10m2_pins>;
 	status = "okay";
