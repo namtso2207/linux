@@ -222,6 +222,10 @@
 	status = "okay";
 };
 
+&hdptxphy_hdmi_clk1 {
+	status = "okay";
+};
+
 &route_hdmi1 {
 	status = "okay";
 	connect = <&vp0_out_hdmi1>;
