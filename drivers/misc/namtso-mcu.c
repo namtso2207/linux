@@ -23,17 +23,8 @@
 #include <linux/regulator/consumer.h>
 
 /* Device registers */
-#define MCU_PWR_OFF_CMD_REG       0x80
-#define MCU_SHUTDOWN_NORMAL_REG   0x2c
-#define MCU_RGB_LED_ON_CTRL_REG         	0x23
-#define MCU_RGB_LED_OFF_CTRL_REG         	0x24
-#define MCU_R_LED_ON_CTRL_REG         	0x25
-#define MCU_G_LED_ON_CTRL_REG         	0x26
-#define MCU_B_LED_ON_CTRL_REG         	0x27
-#define MCU_R_LED_OFF_CTRL_REG         	0x28
-#define MCU_G_LED_OFF_CTRL_REG         	0x29
-#define MCU_B_LED_OFF_CTRL_REG         	0x2A
-
+//#define MCU_PWR_OFF_CMD_REG       0x80
+#define MCU_SHUTDOWN_NORMAL_REG   0x80
 
 /*Fan device*/
 #define MCU_CMD_FAN_STATUS_CTRL_REGv2   0x82
@@ -561,7 +552,7 @@ static ssize_t store_fan_trigger_high(struct class *cls,
 static ssize_t store_mcu_poweroff(struct class *cls,struct class_attribute *attr,
 				const char *buf, size_t count)
 {
-	int ret;
+	//int ret;
 	int val;
 	char reg;
 
@@ -573,13 +564,13 @@ static ssize_t store_mcu_poweroff(struct class *cls,struct class_attribute *attr
 
 	reg = (char)val;
 
-	ret = mcu_i2c_write_regs(g_mcu_data->client,MCU_PWR_OFF_CMD_REG,
+/* 	ret = mcu_i2c_write_regs(g_mcu_data->client,MCU_PWR_OFF_CMD_REG,
 							&reg, 1);
 	if (ret < 0) {
 		pr_debug("write poweroff cmd error\n");
 		return ret;
 	}
-
+ */
 	return count;
 }
 
