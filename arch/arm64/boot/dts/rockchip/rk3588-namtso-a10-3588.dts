@@ -126,6 +126,18 @@
 		pinctrl-0 = <&vcc5v0_host_en>;
 	};
 
+	fan_pwr_en: fan-pwr-en {
+		compatible = "regulator-fixed";
+		regulator-name = "fan_pwr_en";
+		regulator-boot-on;
+		regulator-always-on;
+		enable-active-high;
+		gpio = <&gpio2 RK_PB4 GPIO_ACTIVE_HIGH>;
+		vin-supply = <&vcc_5v0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&fan_pwr_en_pin>;
+	};
+
 	vcc3v3_lcd1_en: vcc3v3-lcd1-en {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc3v3_lcd1_n";
@@ -746,6 +758,13 @@
 
 		typec5v_pwren: typec5v-pwren {
 			rockchip,pins = <2 RK_PB6 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	fan {
+		fan_pwr_en_pin: fan-pwr-en-pin {
+			rockchip,pins =
+				<2 RK_PB4 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 	};
 
