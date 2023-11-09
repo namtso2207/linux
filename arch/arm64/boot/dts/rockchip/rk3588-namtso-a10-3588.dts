@@ -50,7 +50,7 @@
 		regulator-max-microvolt = <3300000>;
 		gpios = <&gpio2 RK_PC5 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&vcc3vc_clken_gpio>;
+		pinctrl-0 = <&pcie3x4_pwren_gpio>;
 		enable-active-high;
 		regulator-boot-on;
 		regulator-always-on;
@@ -669,7 +669,7 @@
 	reset-gpios = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>;
 	vpcie3v3-supply = <&vcc3v3_pcie20>;
 	pinctrl-names = "default";
-	pinctrl-0 = <&pcie2x1l0_gpio>;
+	pinctrl-0 = <&pcie2x1l0_reset_gpio>;
 	rockchip,skip-scan-in-resume;
 	rockchip,perst-inactive-ms = <500>;
 	status = "okay";
@@ -679,7 +679,7 @@
 &pcie2x1l2 {
 	reset-gpios = <&gpio3 RK_PD1 GPIO_ACTIVE_HIGH>;
 	pinctrl-names = "default";
-	pinctrl-0 = <&pcie2x1l1_gpio>;
+	pinctrl-0 = <&pcie2x1l2_reset_gpio>;
 	rockchip,skip-scan-in-resume;
 	status = "okay";
 };
@@ -697,7 +697,7 @@
 	reset-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_HIGH>;
 	vpcie3v3-supply = <&vcc3v3_pcie30>;
 	pinctrl-names = "default";
-	pinctrl-0 = <&pcie3x4_gpio>;
+	pinctrl-0 = <&pcie3x4_reset_gpio>;
 	status = "okay";
 };
 
@@ -816,19 +816,19 @@
 	};
 
 	pcie {
-		pcie2x1l0_gpio: pcie2x1l0-gpio {
-			rockchip,pins = <3 RK_PD1 RK_FUNC_GPIO &pcfg_pull_down>;
-		};
-
-		pcie2x1l1_gpio: pcie2x1l1-gpio {
+		pcie2x1l0_reset_gpio: pcie2x1l0-reset-gpio {
 			rockchip,pins = <1 RK_PB4 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 
-		pcie3x4_gpio: pcie3x4-gpio {
+		pcie2x1l2_reset_gpio: pcie2x1l2-reset-gpio {
+			rockchip,pins = <3 RK_PD1 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+
+		pcie3x4_reset_gpio: pcie3x4-reset-gpio {
 			rockchip,pins = <4 RK_PB6 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 
-		vcc3vc_clken_gpio: vcc3vc-clken-gpio {
+		pcie3x4_pwren_gpio: pcie3x4-pwren-gpio {
 			rockchip,pins = <2 RK_PC5 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 	};
