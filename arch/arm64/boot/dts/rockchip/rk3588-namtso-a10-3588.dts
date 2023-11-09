@@ -104,6 +104,8 @@
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
+		regulator-boot-on;
+		regulator-always-on;
 		gpio = <&gpio2 RK_PB6 GPIO_ACTIVE_HIGH>;
 		vin-supply = <&vcc_5v0>;
 		pinctrl-names = "default";
