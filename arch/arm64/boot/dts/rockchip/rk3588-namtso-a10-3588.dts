@@ -101,10 +101,10 @@
 	pcie3x4_clken: pcie3x4-clken {
 		compatible = "regulator-fixed";
 		regulator-name = "pcie3x4_clken";
-		enable-active-high;
+		enable-active-low;
 		regulator-boot-on;
 		regulator-always-on;
-		gpio = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>;
+		gpio = <&gpio4 RK_PB4 GPIO_ACTIVE_LOW>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pcie3x4_clken_gpio>;
 	};
