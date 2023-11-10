@@ -904,10 +904,6 @@
 	status = "okay";
 };
 
-&sata0 {
-	status = "okay";
-};
-
 /* hdmi0_sound */
 &i2s5_8ch {
 	status = "okay";
