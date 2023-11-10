@@ -11,6 +11,9 @@
 #include <linux/phy.h>
 #include <linux/module.h>
 #include <linux/delay.h>
+#include <linux/netdevice.h>
+#include <linux/gpio.h>
+
 
 #define RTL821x_PHYSR				0x11
 #define RTL821x_PHYSR_DUPLEX			BIT(13)
@@ -86,13 +89,12 @@ static struct phy_device * g_phydev = NULL;
 
 int get_wol_state(void) {
 	return wol_enable;
-}
+} EXPORT_SYMBOL(get_wol_state);
 
 void realtek_enable_wol(int enable, bool suspend)
 {
 	wol_enable = enable & 0x01;
-	pr_info("====[%s] [%s] [%d] realtek_enable_wol: [%d]\n", __FILE__, __func__, __LINE__, wol_enable);
-}
+} EXPORT_SYMBOL(realtek_enable_wol);
 
 static int __init init_wol_state(char *str)
 {
@@ -106,6 +108,7 @@ __setup("wol_enable=", init_wol_state);
 #ifdef CONFIG_PM
 void rtl8211f_shutdown(void) {
 	if (wol_enable && g_phydev) {
+		printk("rtl8211f_shutdown...\n");
 		rtl8211f_config_pin_as_pmeb(g_phydev);
 		rtl8211f_config_speed(g_phydev, 0);
 		rtl8211f_config_mac_addr(g_phydev);
@@ -115,6 +118,7 @@ void rtl8211f_shutdown(void) {
 		rtl8211f_config_pad_isolation(g_phydev, 1);
 	}
 }
+EXPORT_SYMBOL(rtl8211f_shutdown);
 #endif
 
 #ifdef CONFIG_PM_SLEEP
@@ -122,6 +126,7 @@ void rtl8211f_suspend(void) {
 	if (wol_enable && g_phydev) {
 		printk("rtl8211f_suspend...\n");
 		rtl8211f_config_pin_as_pmeb(g_phydev);
+		rtl8211f_config_speed(g_phydev, 0);
 		rtl8211f_config_mac_addr(g_phydev);
 		rtl8211f_config_max_packet(g_phydev);
 		rtl8211f_config_wol(g_phydev, 1);
@@ -129,6 +134,8 @@ void rtl8211f_suspend(void) {
 		rtl8211f_config_pad_isolation(g_phydev, 1);
 	}
 }
+EXPORT_SYMBOL(rtl8211f_suspend);
+
 
 void rtl8211f_resume(void) {
 	if (wol_enable && g_phydev) {
@@ -138,6 +145,7 @@ void rtl8211f_resume(void) {
 		rtl8211f_config_pad_isolation(g_phydev, 0);
 	}
 }
+EXPORT_SYMBOL(rtl8211f_resume);
 #endif
 
 static void rtl8211f_config_speed(struct phy_device *phydev, int mode)
@@ -152,15 +160,28 @@ static void rtl8211f_config_speed(struct phy_device *phydev, int mode)
 
 static void rtl8211f_config_mac_addr(struct phy_device *phydev)
 {
-	pr_err("realtek init mac-addr: %x:%x:%x:%x:%x:%x\n",
-		mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4],
-		mac_addr[5]);
+	printk("realtek init mac-addr: %x:%x:%x:%x:%x:%x\n",
+			mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4],
+			mac_addr[5]);
 
 	phy_write(phydev, RTL821x_EPAGSR, 0xd8c); /*set page 0xd8c*/
 	phy_write(phydev, RTL8211F_MAC_ADDR_CTRL0, mac_addr[1] << 8 | mac_addr[0]);
 	phy_write(phydev, RTL8211F_MAC_ADDR_CTRL1, mac_addr[3] << 8 | mac_addr[2]);
 	phy_write(phydev, RTL8211F_MAC_ADDR_CTRL2, mac_addr[5] << 8 | mac_addr[4]);
 	phy_write(phydev, RTL821x_EPAGSR, 0); /*set page 0*/
+}
+
+static void rtl8211f_config_reset_phy(struct phy_device *phydev)
+{
+	int reg=0;
+	phy_write(phydev, RTL821x_EPAGSR, 0x0a43);
+	reg = phy_read(phydev, 0x19);
+	/*set reg25 bit0 as 0*/
+	reg = phy_write(phydev, 0x19, reg & 0xfffe);
+	/* switch to page 0 */
+	phy_write(phydev, RTL821x_EPAGSR, 0x0);
+	/*reset phy to apply*/
+	reg = phy_write(phydev, 0x0, 0x9200); 
 }
 
 static void rtl8211f_config_pin_as_pmeb(struct phy_device *phydev)
@@ -337,13 +358,23 @@ static int rtl8211c_config_init(struct phy_device *phydev)
 			    CTL1000_ENABLE_MASTER | CTL1000_AS_MASTER);
 }
 
+int wol_get_ctrl_gpio(void);
 static int rtl8211f_config_init(struct phy_device *phydev)
 {
 	struct device *dev = &phydev->mdio.dev;
 	u16 val_txdly, val_rxdly;
 	u16 val;
 	int ret;
+	int i=0;
 
+	pr_info("rtl8211f_config_init [%d]\n", wol_get_ctrl_gpio());
+	ret = devm_gpio_request(&phydev->attached_dev->dev, wol_get_ctrl_gpio(), "gmac_ctrl_wol_io");
+	if (!ret) {
+		gpio_direction_output(wol_get_ctrl_gpio(), 0);
+	} else {
+		pr_err("devm_gpio_request gpio [%d] failed\n", wol_get_ctrl_gpio());
+	}
+    
 	val = RTL8211F_ALDPS_ENABLE | RTL8211F_ALDPS_PLL_OFF | RTL8211F_ALDPS_XTAL_OFF;
 	phy_modify_paged_changed(phydev, 0xa43, RTL8211F_PHYCR1, val, val);
 
@@ -402,12 +433,20 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 			val_rxdly ? "enabled" : "disabled");
 	}
 
+	rtl8211f_config_reset_phy(phydev);
 	rtl8211f_config_pin_as_pmeb(phydev);
 	rtl8211f_config_speed(phydev, 1);
 	g_phydev = kzalloc(sizeof(struct phy_device), GFP_KERNEL);
 	if (g_phydev == NULL)
 		return -ENOMEM;
 	g_phydev = phydev;
+
+	if (phydev->attached_dev) {
+		for (i=0; i<sizeof(mac_addr)/sizeof(mac_addr[0]); i++)
+		{
+			mac_addr[i] = phydev->attached_dev->dev_addr[i];
+		}
+	}
 
 	return 0;
 }

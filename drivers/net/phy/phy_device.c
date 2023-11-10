@@ -2577,18 +2577,24 @@ int genphy_write_mmd_unsupported(struct phy_device *phdev, int devnum,
 EXPORT_SYMBOL(genphy_write_mmd_unsupported);
 
 int get_wol_state(void);
+void rtl8211f_suspend(void);
 int genphy_suspend(struct phy_device *phydev)
 {
-	if (get_wol_state())
-	{
+	printk("genphy_suspend: wol_enable: %d\n", get_wol_state());
+	if (get_wol_state()) {
+		printk("genphy_suspend: config WOL...\n");
+		rtl8211f_suspend();
 		return 0;
 	}
 	return phy_set_bits(phydev, MII_BMCR, BMCR_PDOWN);
 }
 EXPORT_SYMBOL(genphy_suspend);
 
+void rtl8211f_resume(void);
 int genphy_resume(struct phy_device *phydev)
 {
+	printk("rtl8211f_resume: wol_enable: %d\n", get_wol_state());
+	rtl8211f_resume();
 	return phy_clear_bits(phydev, MII_BMCR, BMCR_PDOWN);
 }
 EXPORT_SYMBOL(genphy_resume);

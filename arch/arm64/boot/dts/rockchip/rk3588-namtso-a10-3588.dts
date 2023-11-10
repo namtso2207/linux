@@ -554,12 +554,16 @@
 	/* Reset time is 20ms, 100ms for rtl8211f */
 	/*snps,reset-delays-us = <0 20000 100000>;*/
 
+	wolirq-gpio = <&gpio0 RK_PC2 GPIO_ACTIVE_LOW>;
+	wolctrl-gpio = <&gpio4 RK_PC6 GPIO_ACTIVE_LOW>;
+
 	pinctrl-names = "default";
 	pinctrl-0 = <&gmac1_miim
 		     &gmac1_tx_bus2
 		     &gmac1_rx_bus2
 		     &gmac1_rgmii_clk
-		     &gmac1_rgmii_bus>;
+		     &gmac1_rgmii_bus
+			 &wol_gpio>;
 
 	tx_delay = <0x3e>;
 	/*rx_delay = <0x35>;*/
@@ -832,6 +836,12 @@
 	        link_io_pwren_gpio: link-io-pwren-gpio {
 	            rockchip,pins = <4 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
 	     };
+	};
+
+	wol {
+		wol_gpio: wol-gpio {
+			rockchip,pins = <0 RK_PC2 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
 	};
 };
 
