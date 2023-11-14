@@ -294,27 +294,7 @@
 	status = "okay";
 };
 
-&hdmi0 {
-	cec-enable;
-	status = "okay";
-};
 
-&hdmi0_in_vp2 {
-	status = "okay";
-};
-
-&hdmi0_sound {
-	status = "okay";
-};
-
-&hdptxphy_hdmi0 {
-	status = "okay";
-};
-
-&route_hdmi0 {
-	status = "okay";
-	connect = <&vp2_out_hdmi0>;
-};
 
 &hdmi1 {
 	enable-gpios = <&gpio4 RK_PB1 GPIO_ACTIVE_HIGH>;
@@ -920,11 +900,6 @@
 
 /* es8316_sound */
 &i2s0_8ch {
-	status = "okay";
-};
-
-/* hdmi0_sound */
-&i2s5_8ch {
 	status = "okay";
 };
 
