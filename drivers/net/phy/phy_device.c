@@ -2578,6 +2578,7 @@ int genphy_write_mmd_unsupported(struct phy_device *phdev, int devnum,
 EXPORT_SYMBOL(genphy_write_mmd_unsupported);
 
 int get_wol_state(void);
+void rtl8211f_suspend(void);
 int genphy_suspend(struct phy_device *phydev)
 {
 	printk("genphy_suspend: wol_enable: %d\n", get_wol_state());
@@ -2590,6 +2591,7 @@ int genphy_suspend(struct phy_device *phydev)
 }
 EXPORT_SYMBOL(genphy_suspend);
 
+void rtl8211f_resume(void);
 int genphy_resume(struct phy_device *phydev)
 {
 	printk("genphy_resume: wol_enable: %d\n", get_wol_state());
