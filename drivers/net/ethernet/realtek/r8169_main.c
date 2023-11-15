@@ -4983,23 +4983,6 @@ static const struct dev_pm_ops rtl8169_pm_ops = {
 
 #endif /* CONFIG_PM */
 
-static void rtl_wol_shutdown_quirk(struct rtl8169_private *tp)
-{
-	/* WoL fails with 8168b when the receiver is disabled. */
-	switch (tp->mac_version) {
-	case RTL_GIGA_MAC_VER_11:
-	case RTL_GIGA_MAC_VER_12:
-	case RTL_GIGA_MAC_VER_17:
-		pci_clear_master(tp->pci_dev);
-
-		RTL_W8(tp, ChipCmd, CmdRxEnb);
-		rtl_pci_commit(tp);
-		break;
-	default:
-		break;
-	}
-}
-
 static void rtl_shutdown(struct pci_dev *pdev)
 {
 	struct rtl8169_private *tp = pci_get_drvdata(pdev);
@@ -5007,19 +4990,6 @@ static void rtl_shutdown(struct pci_dev *pdev)
 	rtnl_lock();
 	rtl8169_net_suspend(tp);
 	rtnl_unlock();
-
-	/* Restore original MAC address */
-	rtl_rar_set(tp, tp->dev->perm_addr);
-
-	if (system_state == SYSTEM_POWER_OFF) {
-		if (tp->saved_wolopts) {
-			rtl_wol_suspend_quirk(tp);
-			rtl_wol_shutdown_quirk(tp);
-		}
-
-		pci_wake_from_d3(pdev, true);
-		pci_set_power_state(pdev, PCI_D3hot);
-	}
 }
 
 static void rtl_remove_one(struct pci_dev *pdev)
