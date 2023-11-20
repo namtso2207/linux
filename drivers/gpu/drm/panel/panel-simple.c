@@ -5338,8 +5338,10 @@ static int __init namtso_mipi_id_para_setup(char *str)
 {
         if (str != NULL){
                 sprintf(lcd_propname, "%s", str);
-		if(!strcmp(lcd_propname, "3"))
-			namtso_mipi_id = 3;
+		if(!strcmp(lcd_propname, "4"))
+			namtso_mipi_id = 4;
+                else if(!strcmp(lcd_propname, "3"))
+                        namtso_mipi_id = 3;
 		else if(!strcmp(lcd_propname, "2"))
 			namtso_mipi_id = 2;
 		else if(!strcmp(lcd_propname, "1"))
