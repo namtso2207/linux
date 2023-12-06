@@ -840,7 +840,7 @@
 
 	vcc_ext {
 		vcc_3v3_ext_en: vcc-3v3-ext-en {
-			rockchip,pins = <0 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <2 RK_PB7 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
