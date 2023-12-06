@@ -112,7 +112,7 @@ static int es8316_reset(struct snd_soc_component *component)
 static void es8316_enable_spk(struct es8316_priv *es8316, bool enable)
 {
 	bool level;
-
+return;
 	if (es8316->hp_inserted)
 		enable = 0;
 
@@ -1181,6 +1181,39 @@ static const struct regmap_config es8316_regmap = {
 	.cache_type = REGCACHE_RBTREE,
 };
 
+static ssize_t show_hp_inserted(struct class *cls,
+             struct class_attribute *attr, char *buf)
+{
+	struct es8316_priv *es8316;
+
+	if (!es8316_component)
+		return -1;
+
+	es8316 = snd_soc_component_get_drvdata(es8316_component);
+
+	return sprintf(buf, "%d\n", es8316->hp_inserted);
+}
+
+static struct class_attribute es8316_class_attrs[] = {
+    __ATTR(hp_inserted, 0644, show_hp_inserted, NULL),
+};
+
+static void create_es8316_attrs(void) {
+	int i;
+	struct class *es8316_class;
+
+	es8316_class = class_create(THIS_MODULE, "es8316");
+	if (IS_ERR(es8316_class)) {
+		pr_err("create es8316_class debug class fail\n");
+
+		return;
+	}
+	for (i = 0; i < ARRAY_SIZE(es8316_class_attrs); i++) {
+		if (class_create_file(es8316_class, &es8316_class_attrs[i]))
+			pr_err("create es8316 attribute %s fail\n",es8316_class_attrs[i].attr.name);
+	}
+}
+
 static int es8316_i2c_probe(struct i2c_client *i2c,
 			    const struct i2c_device_id *id)
 {
@@ -1265,6 +1298,7 @@ static int es8316_i2c_probe(struct i2c_client *i2c,
 				     &soc_component_dev_es8316,
 				     &es8316_dai, 1);
 	printk("es8316_i2c_probe end %d\n",__LINE__);
+	create_es8316_attrs();
 	return ret;
 }
 
