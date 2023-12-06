@@ -374,7 +374,7 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 	pr_info("rtl8211f_config_init [%d]\n", wol_get_ctrl_gpio());
 	ret = devm_gpio_request(&phydev->attached_dev->dev, wol_get_ctrl_gpio(), "gmac_ctrl_wol_io");
 	if (!ret) {
-		gpio_direction_output(wol_get_ctrl_gpio(), 0);
+		gpio_direction_output(wol_get_ctrl_gpio(), 1);
 	} else {
 		pr_err("devm_gpio_request gpio [%d] failed\n", wol_get_ctrl_gpio());
 	}

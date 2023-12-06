@@ -2877,8 +2877,10 @@ static int rk_gmac_resume(struct device *dev)
 
 #ifdef CONFIG_PM
 void rtl8211f_shutdown(void);
+int wol_get_ctrl_gpio(void);
 static void stmmac_pltfr_shutdown(struct platform_device *dev)
 {
+	gpio_direction_output(wol_get_ctrl_gpio(), 0);
 	rtl8211f_shutdown();
 }
 #endif
