@@ -671,6 +671,33 @@
 	status = "okay";
 };
 
+&i2c6 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c6m2_xfer>;
+	status = "okay";
+
+	ft5336@38 {
+		compatible = "edt,edt-ft5336", "ft5x06";
+		reg = <0x38>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <RK_PC0 IRQ_TYPE_EDGE_FALLING>;
+		reset-gpio = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&tpr_rst_gpio>;
+		status = "okay";
+	};
+
+	gt9xx@14 {
+		compatible = "goodix,gt9xx";
+		reg = <0x14>;
+		touch-gpio = <&gpio2 RK_PC0 IRQ_TYPE_LEVEL_LOW>;
+		reset-gpio = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>;
+		max-x = <1920>;
+		max-y = <1200>;
+		tp-size = <89>;
+	};
+};
+
 &i2c7 {
 	status = "okay";
 };
@@ -859,6 +886,10 @@
 	touch {
 		tp_rst_gpio: tp-rst-gpio {
 			rockchip,pins = <0 RK_PC0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		tpr_rst_gpio: tpr-rst-gpio {
+			rockchip,pins = <2 RK_PC1 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
