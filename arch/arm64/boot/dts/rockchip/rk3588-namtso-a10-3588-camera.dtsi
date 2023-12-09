@@ -31,7 +31,7 @@
 		clock-names = "xvclk";
 		power-domains = <&power RK3588_PD_VI>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&mipim0_camera1_clk>, <&cam_reset_gpio>;
+		pinctrl-0 = <&mipim0_camera1_clk>, <&cam1_reset_gpio>;
 		rockchip,grf = <&sys_grf>;
 		reset-gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_LOW>;
 		pwdn-gpios = <&gpio1 RK_PB1 GPIO_ACTIVE_HIGH>;
@@ -175,9 +175,9 @@
 		clock-names = "xvclk";
 		power-domains = <&power RK3588_PD_VI>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&mipim0_camera2_clk>, <&cam_reset_gpio>;
+		pinctrl-0 = <&mipim0_camera2_clk>, <&cam2_reset_gpio>;
 		rockchip,grf = <&sys_grf>;
-		reset-gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio1 RK_PA7 GPIO_ACTIVE_LOW>;
 		pwdn-gpios = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>;
 		rockchip,camera-module-index = <1>;
 		rockchip,camera-module-facing = "back";
@@ -328,9 +328,9 @@
 		clocks = <&cru CLK_MIPI_CAMARAOUT_M3>;
 		clock-names = "xvclk";
 		pinctrl-names = "default";
-		pinctrl-0 = <&mipim0_camera3_clk>, <&cam_reset_gpio>;
+		pinctrl-0 = <&mipim0_camera3_clk>, <&cam3_reset_gpio>;
 		power-domains = <&power RK3588_PD_VI>;
-		reset-gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio1 RK_PB3 GPIO_ACTIVE_LOW>;
 		pwdn-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
 		rockchip,camera-module-index = <2>;
 		rockchip,camera-module-facing = "back";
@@ -455,7 +455,7 @@
 
 /**********************************************************************************************************************/
 
-&i2c7 {
+&i2c6 {
 	status = "okay";
 
 	dw9714_cam4: dw9714_cam4@c {
@@ -478,9 +478,9 @@
 		clocks = <&cru CLK_MIPI_CAMARAOUT_M4>;
 		clock-names = "xvclk";
 		pinctrl-names = "default";
-		pinctrl-0 = <&mipim0_camera4_clk>, <&cam_reset_gpio>;
+		pinctrl-0 = <&mipim0_camera4_clk>, <&cam4_reset_gpio>;
 		power-domains = <&power RK3588_PD_VI>;
-		reset-gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio1 RK_PB5 GPIO_ACTIVE_LOW>;
 		pwdn-gpios = <&gpio1 RK_PC6 GPIO_ACTIVE_HIGH>;
 		rockchip,camera-module-index = <3>;
 		rockchip,camera-module-facing = "back";
@@ -602,9 +602,24 @@
 &pinctrl {
 	cam {
 
-		cam_reset_gpio: cam-reset-gpio {
+		cam1_reset_gpio: cam-reset-gpio {
 			rockchip,pins =
 				<1 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		cam2_reset_gpio: cam2-reset-gpio {
+			rockchip,pins =
+				<1 RK_PA7 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		cam3_reset_gpio: cam3-reset-gpio {
+			rockchip,pins =
+				<1 RK_PB3 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		cam4_reset_gpio: cam4-reset-gpio {
+			rockchip,pins =
+				<1 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
 		focus_cam1_gpio: focus-cam1-gpio {

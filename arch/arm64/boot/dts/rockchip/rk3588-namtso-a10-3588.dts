@@ -692,10 +692,6 @@
 	};
 };
 
-&i2c7 {
-	status = "okay";
-};
-
 &i2s5_8ch {
 	status = "okay";
 };
