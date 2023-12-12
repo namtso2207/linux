@@ -750,7 +750,7 @@
 &pinctrl {
 	dp {
 		dp1_hpd: dp1-hpd {
-			rockchip,pins = <1 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <3 RK_PD5 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
