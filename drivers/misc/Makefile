@@ -67,4 +67,5 @@ obj-$(CONFIG_UID_SYS_STATS)	+= uid_sys_stats.o
 
 obj-$(CONFIG_WK2204_UART_HUB) += wk2xxx_i2c.o
 obj-$(CONFIG_NAMTSO_MCU) += namtso-mcu.o
+obj-$(CONFIG_CH9434_UART_HUB) += ch9434.o
 
