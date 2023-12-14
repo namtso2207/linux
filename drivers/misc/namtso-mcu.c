@@ -24,6 +24,7 @@
 
 /* Device registers */
 #define MCU_BOOT_EN_WOL_REG		  0x21
+#define MCU_PCIE_WOL_EN_REG				0x26
 #define MCU_BOOT_INIT_WOL		   		0x85
 //#define MCU_PWR_OFF_CMD_REG       0x80
 #define MCU_SHUTDOWN_NORMAL_REG   0x80
@@ -102,6 +103,7 @@ struct mcu_data {
 	struct class *wol_class;
 	struct class *mcu_class;
 	int wol_enable;
+	int pcie_eth_wol_enable;
 	enum namtso_board board;
 	enum namtso_board_hwver hwver;
 	struct mcu_fan_data fan_data;
@@ -111,10 +113,16 @@ struct mcu_data *g_mcu_data;
 int ageing_test_flag = 0;
 
 extern void realtek_enable_wol(int enable, bool suspend);
-void mcu_enable_wol(int enable, bool suspend)
+void mcu_enable_wol_eth0(int enable, bool suspend)
 {
 	pr_info("enable:[%d]  suspend:[%d]\n", enable, suspend);
 	realtek_enable_wol(enable, suspend);
+}
+void realtek_pcie_eth_set_wol_enable(int enable);
+void mcu_enable_wol_eth1(int enable)
+{
+	pr_info("enable:[%d]\n", enable);
+	realtek_pcie_eth_set_wol_enable(enable);
 }
 static int i2c_master_reg8_send(const struct i2c_client *client,
 		const char reg, const char *buf, int count)
@@ -659,7 +667,7 @@ static struct class_attribute fan_class_attrs[] = {
     __ATTR(temp, 0644, show_fan_temp, NULL),
 };
 
-static ssize_t store_wol_enable(struct class *cls, struct class_attribute *attr,
+static ssize_t store_wol_enable_eth0(struct class *cls, struct class_attribute *attr,
 								const char *buf, size_t count)
 {
 	u8 reg[2];
@@ -686,13 +694,46 @@ static ssize_t store_wol_enable(struct class *cls, struct class_attribute *attr,
 	}
 
 	g_mcu_data->wol_enable = reg[0];
-	mcu_enable_wol(g_mcu_data->wol_enable, false);
+	mcu_enable_wol_eth0(g_mcu_data->wol_enable, false);
 
 	printk("write wol state: %d\n", g_mcu_data->wol_enable);
 	return count;
 }
 
-static ssize_t show_wol_enable(struct class *cls,
+static ssize_t store_wol_enable_eth1(struct class *cls, struct class_attribute *attr,
+								const char *buf, size_t count)
+{
+	u8 reg[2];
+	int ret;
+	int enable;
+	int state;
+
+	if (kstrtoint(buf, 0, &enable))
+		return -EINVAL;
+
+	ret = mcu_i2c_read_regs(g_mcu_data->client, MCU_PCIE_WOL_EN_REG,
+					reg, 1);
+	if (ret < 0) {
+		printk("write wol state err\n");
+		return ret;
+	}
+	state = (int)reg[0];
+	reg[0] = enable | (state & 0x02);
+	ret = mcu_i2c_write_regs(g_mcu_data->client, MCU_PCIE_WOL_EN_REG,
+								reg, 1);
+	if (ret < 0) {
+		printk("write wol state err\n");
+		return ret;
+	}
+
+	g_mcu_data->pcie_eth_wol_enable = reg[0];
+	mcu_enable_wol_eth1(g_mcu_data->wol_enable);
+
+	printk("write wol state: %d\n", g_mcu_data->wol_enable);
+	return count;
+}
+
+static ssize_t show_wol_enable_eth0(struct class *cls,
 				struct class_attribute *attr, char *buf)
 {
 	int enable;
@@ -700,8 +741,20 @@ static ssize_t show_wol_enable(struct class *cls,
 	enable = g_mcu_data->wol_enable & 0x01;
 	return sprintf(buf, "%d\n", enable);
 }
-static struct class_attribute wol_class_attrs[] = {
-	__ATTR(enable, 0644, show_wol_enable, store_wol_enable),
+static ssize_t show_wol_enable_eth1(struct class *cls,
+				struct class_attribute *attr, char *buf)
+{
+	int enable;
+
+	enable = g_mcu_data->pcie_eth_wol_enable & 0x01;
+	return sprintf(buf, "%d\n", enable);
+}
+
+static struct class_attribute wol_class_attrs_eth0[] = {
+	__ATTR(eth0_enable, 0644, show_wol_enable_eth0, store_wol_enable_eth0),
+};
+static struct class_attribute wol_class_attrs_eth1[] = {
+	__ATTR(eth1_enable, 0644, show_wol_enable_eth1, store_wol_enable_eth1),
 };
 static struct class_attribute mcu_class_attrs[] = {
 	__ATTR(poweroff, 0644, NULL, store_mcu_poweroff),
@@ -719,9 +772,13 @@ static void create_mcu_attrs(void) {
 			pr_err("create wol_class debug class fail\n");
 			return;
 		}
-		for (i = 0; i < ARRAY_SIZE(wol_class_attrs); i++) {
-			if (class_create_file(g_mcu_data->wol_class, &wol_class_attrs[i]))
-				pr_err("create wol attribute %s fail\n", wol_class_attrs[i].attr.name);
+		for (i = 0; i < ARRAY_SIZE(wol_class_attrs_eth0); i++) {
+			if (class_create_file(g_mcu_data->wol_class, &wol_class_attrs_eth0[i]))
+				pr_err("create wol attribute %s fail\n", wol_class_attrs_eth0[i].attr.name);
+		}
+		for (i = 0; i < ARRAY_SIZE(wol_class_attrs_eth1); i++) {
+			if (class_create_file(g_mcu_data->wol_class, &wol_class_attrs_eth1[i]))
+				pr_err("create wol attribute %s fail\n", wol_class_attrs_eth1[i].attr.name);
 		}
 	}
 	g_mcu_data->mcu_class = class_create(THIS_MODULE, "mcu");
@@ -795,7 +852,6 @@ static int mcu_parse_dt(struct device *dev)
 
 static int mcu_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
-
 	u8 reg[2] = {'\0'};
 	int ret = -1;
 
@@ -814,9 +870,19 @@ static int mcu_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	g_mcu_data->client = client;
 	ret = mcu_i2c_read_regs(client, MCU_BOOT_EN_WOL_REG, reg, 1);
 	if (ret < 0)
-		pr_err("==mcu_i2c_read_regs failed: [%d]\n", MCU_BOOT_EN_WOL_REG);
-
+		pr_err("mcu_i2c_read_regs failed: [%d]\n", MCU_BOOT_EN_WOL_REG);
 	g_mcu_data->wol_enable = (int)reg[0] & 0x01;
+	if (g_mcu_data->wol_enable) {
+		mcu_enable_wol_eth0(g_mcu_data->wol_enable, false);
+	}
+	memset(reg, 0, sizeof(reg));
+	ret = mcu_i2c_read_regs(client, MCU_PCIE_WOL_EN_REG, reg, 1);
+	if (ret < 0)
+		pr_err("mcu_i2c_read_regs failed: [%d]\n", MCU_PCIE_WOL_EN_REG);
+	g_mcu_data->pcie_eth_wol_enable = (int)reg[0] & 0x01;
+	if (g_mcu_data->pcie_eth_wol_enable) {
+		mcu_enable_wol_eth1(g_mcu_data->pcie_eth_wol_enable);
+	}
 	g_mcu_data->fan_data.mode = MCU_FAN_MODE_AUTO;
 	g_mcu_data->fan_data.level = MCU_FAN_LEVEL_0;
 	g_mcu_data->fan_data.enable = MCU_FAN_STATUS_ENABLE;
