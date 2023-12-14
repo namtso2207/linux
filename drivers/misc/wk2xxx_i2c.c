@@ -55,6 +55,8 @@ MODULE_LICENSE("Dual BSD/GPL");
 #define WK2XXX_STATUS_BRK   4
 #define WK2XXX_STATUS_OE    8
 
+#define UART_RS485_MODE     (3)
+
 
 static DEFINE_MUTEX(wk2xxxs_lock);                /* race on probe */
 static DEFINE_MUTEX(wk2xxxs_reg_lock);
@@ -615,6 +617,7 @@ static void wk2xxx_tx_chars(struct uart_port *port)
     	struct wk2xxx_port *s = container_of(port,struct wk2xxx_port,port);
     	uint8_t fsr,tfcnt,dat[1],txbuf[256]={0};
     	int count,tx_count,i;
+        unsigned char read_reg = 0;
 #ifdef _DEBUG_WK2XXX5
 printk( "--wk2xxx_tx_chars---in---\n");
 #endif
@@ -661,7 +664,14 @@ printk(KERN_ALERT "wk2xxx_tx_chars   fsr:0x%x,rfcnt:0x%x,port = %lx\n",fsr,tfcnt
 #ifdef _DEBUG_WK2XXX
     printk(KERN_ALERT "fsr:%x\n",fsr);
 #endif
-   
+
+    if ((s == &wk2xxxs[UART_RS485_MODE]) && (tx_count > 0))
+    {
+        wk2xxx_write_slave_reg(s->wk2xxx_i2c_client,s->port.iobase,WK2XXX_SPAGE,WK2XXX_PAGE0);//set register in page0
+        wk2xxx_read_slave_reg(s->wk2xxx_i2c_client,s->port.iobase,WK2XXX_FWCR,&read_reg);
+        read_reg |= (1 << 1);
+        wk2xxx_write_slave_reg(s->wk2xxx_i2c_client,s->port.iobase,WK2XXX_FWCR, read_reg);
+    }
 
 	count = tx_count;
 	i=0;
@@ -692,6 +702,14 @@ printk(KERN_ALERT "wk2xxx_tx_chars   fsr:0x%x,rfcnt:0x%x,port = %lx\n",fsr,tfcnt
    		wk2xxx_write_slave_reg(s->wk2xxx_i2c_client,s->port.iobase,WK2XXX_FDAT,txbuf[count]);	
 	}
 #endif
+
+    if ((s == &wk2xxxs[UART_RS485_MODE]))
+    {
+        wk2xxx_write_slave_reg(s->wk2xxx_i2c_client,s->port.iobase,WK2XXX_SPAGE,WK2XXX_PAGE0);//set register in page0
+        wk2xxx_read_slave_reg(s->wk2xxx_i2c_client,s->port.iobase,WK2XXX_FWCR,&read_reg);
+        read_reg &= ~(1 << 1);
+        wk2xxx_write_slave_reg(s->wk2xxx_i2c_client,s->port.iobase,WK2XXX_FWCR, read_reg);
+    }
 
 
 #ifdef _DEBUG_WK2XXX
@@ -1569,7 +1587,6 @@ static int rockchip_i2c_parse_dt(struct device *dev)
 	return irq;
 }
 
-#define UART_RS485_MODE     (3)
 static int wk2xxx_set_mode(int index_tty)
 {
     unsigned char read_reg = 0;
