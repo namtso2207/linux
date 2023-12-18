@@ -615,8 +615,9 @@
 		clock-names = "mclk";
 		assigned-clocks = <&cru I2S0_8CH_MCLKOUT>;
 		assigned-clock-rates = <12288000>;
-		pinctrl-names = "default","hp_det";
-		pinctrl-0 = <&i2s0_mclk>,<&hp_det>;
+		pinctrl-names = "default","hp_det","spk_con";
+		pinctrl-0 = <&i2s0_mclk>,<&hp_det>,<&spk_con>;
+		spk-con-gpio = <&gpio3 RK_PD0 GPIO_ACTIVE_HIGH>;
 		hp-det-gpio = <&gpio1 RK_PC4 GPIO_ACTIVE_LOW>;
 	};
 };
@@ -624,12 +625,6 @@
 &i2c4 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&i2c5m0_xfer>;
-	status = "okay";
-};
-
-&i2c5 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&i2c4m3_xfer>;
 	status = "okay";
 };
 
@@ -706,6 +701,9 @@
 	audio {
 		hp_det: hp-det {
 			rockchip,pins = <1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+		spk_con: spk-con {
+			rockchip,pins = <3 RK_PD0 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
