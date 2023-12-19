@@ -29,6 +29,7 @@
 #include <linux/prefetch.h>
 #include <linux/ipv6.h>
 #include <net/ip6_checksum.h>
+#include <linux/gpio.h>
 
 #include "r8169.h"
 #include "r8169_firmware.h"
@@ -631,12 +632,13 @@ struct rtl8169_private {
 	struct rtl_fw *rtl_fw;
 
 	u32 ocp_base;
+
+	int pcie_eth_wol_irq;
 };
 
 typedef void (*rtl_generic_fct)(struct rtl8169_private *tp);
 
-#define RTL8169_INIT_NG		(0)
-#define RTL8169_INIT_OK		(1)
+#define PCIE_NET_WOL_IRQ_GPIO	(22)	//GPIO0_C6
 static int pcie_eth_wol_enable = 0;
 
 MODULE_AUTHOR("Realtek and the Linux r8169 crew <netdev@vger.kernel.org>");
@@ -4939,6 +4941,10 @@ static int __maybe_unused rtl8169_suspend(struct device *device)
 {
 	struct rtl8169_private *tp = dev_get_drvdata(device);
 
+	if (tp->pcie_eth_wol_irq > 0) {
+		enable_irq_wake(tp->pcie_eth_wol_irq);
+	}
+
 	rtnl_lock();
 	rtl8169_net_suspend(tp);
 	if (!device_may_wakeup(tp_to_dev(tp)))
@@ -4951,6 +4957,10 @@ static int __maybe_unused rtl8169_suspend(struct device *device)
 static int __maybe_unused rtl8169_resume(struct device *device)
 {
 	struct rtl8169_private *tp = dev_get_drvdata(device);
+
+	if (tp->pcie_eth_wol_irq > 0) {
+		disable_irq_wake(tp->pcie_eth_wol_irq);
+	}
 
 	if (!device_may_wakeup(tp_to_dev(tp)))
 		clk_prepare_enable(tp->clk);
@@ -5309,6 +5319,11 @@ done:
 	rtl_rar_set(tp, mac_addr);
 }
 
+static irqreturn_t pcie_net_wol_isr(int irq, void *dev_id)
+{
+	return IRQ_HANDLED;
+}
+
 static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
 	struct rtl8169_private *tp;
@@ -5402,6 +5417,20 @@ static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	if (rc < 0) {
 		dev_err(&pdev->dev, "Can't allocate interrupt\n");
 		return rc;
+	}
+
+	if (PCIE_NET_WOL_IRQ_GPIO > 0) {
+	   	rc = devm_gpio_request(&pdev->dev, PCIE_NET_WOL_IRQ_GPIO, "pcie_net_wol_io");
+	   	if (!rc) {
+			pr_info("pcie_net_wol_io request ok: [%d]\n", PCIE_NET_WOL_IRQ_GPIO);
+			tp->pcie_eth_wol_irq = gpio_to_irq(PCIE_NET_WOL_IRQ_GPIO);
+			rc = devm_request_irq(&pdev->dev, tp->pcie_eth_wol_irq, pcie_net_wol_isr, IRQF_TRIGGER_FALLING, "pcie_net_wol_irq", dev);
+			if (!rc) {
+				pr_info("gmac_wol_io irq ok: [%d]\n",  tp->pcie_eth_wol_irq);
+				device_init_wakeup(&dev->dev, 1);
+	   			enable_irq_wake(tp->pcie_eth_wol_irq);
+			}
+	   	}
 	}
 
 	INIT_WORK(&tp->wk.work, rtl_task);
