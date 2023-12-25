@@ -598,9 +598,9 @@ static ssize_t store_wol_enable_eth1(struct class *cls, struct class_attribute *
 	}
 
 	g_mcu_data->pcie_eth_wol_enable = reg[0];
-	mcu_enable_wol_eth1(g_mcu_data->wol_enable);
+	mcu_enable_wol_eth1(g_mcu_data->pcie_eth_wol_enable);
 
-	printk("write wol state: %d\n", g_mcu_data->wol_enable);
+	printk("write wol state: %d\n", g_mcu_data->pcie_eth_wol_enable);
 	return count;
 }
 
