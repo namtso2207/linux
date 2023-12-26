@@ -141,22 +141,36 @@ EXPORT_SYMBOL_GPL(of_get_display_timing);
  * @np: device_node with the subnodes
  **/
 extern int namtso_mipi_id;
+extern int namtso_mipi_id2;
 struct display_timings *of_get_display_timings(const struct device_node *np)
 {
 	struct device_node *timings_np;
 	struct device_node *entry;
 	struct device_node *native_mode;
 	struct display_timings *disp;
+	static bool first_flag = 0;
 
 	if (!np)
 		return NULL;
-//printk("hlm xx of_get_display_timings\n");
-if(2 == namtso_mipi_id){
-	timings_np = of_get_child_by_name(np, "display-timings1");
-}
-else{
-	timings_np = of_get_child_by_name(np, "display-timings");
-}
+
+printk("hlm xx of_get_display_timings first_flag=%d namtso_mipi_id=%d namtso_mipi_id2=%d\n", first_flag,namtso_mipi_id,namtso_mipi_id2);
+	if(first_flag){
+		if(2 == namtso_mipi_id2){
+				timings_np = of_get_child_by_name(np, "display-timings1");
+		}
+		else{
+				timings_np = of_get_child_by_name(np, "display-timings");
+		}
+	}else{
+		if(2 == namtso_mipi_id){
+			timings_np = of_get_child_by_name(np, "display-timings1");
+		}
+		else{
+			timings_np = of_get_child_by_name(np, "display-timings");
+		}
+	}
+	first_flag = !first_flag;
+
 	if (!timings_np) {
 		pr_err("%pOF: could not find display-timings node\n", np);
 		return NULL;

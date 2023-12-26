@@ -4669,6 +4669,7 @@ static bool of_child_node_is_present(const struct device_node *node,
 }
 
 int namtso_mipi_id = 0;
+int namtso_mipi_id2 = 0;
 static int panel_simple_of_get_desc_data(struct device *dev,
 					 struct panel_desc *desc)
 {
@@ -4677,8 +4678,43 @@ static int panel_simple_of_get_desc_data(struct device *dev,
 	const void *data;
 	int len;
 	int err;
-//printk("hlm namtso_mipi_id=%d\n",namtso_mipi_id);
-if(namtso_mipi_id == 2){
+	static bool first_flag = 0;
+
+printk("hlm first_flag=%d namtso_mipi_id=%d namtso_mipi_id2=%d\n", first_flag,namtso_mipi_id,namtso_mipi_id2);
+if(first_flag && namtso_mipi_id2 == 2){
+	if (of_child_node_is_present(np, "display-timings1")) {
+		struct drm_display_mode *mode;
+
+		mode = devm_kzalloc(dev, sizeof(*mode), GFP_KERNEL);
+		if (!mode)
+			return -ENOMEM;
+
+		if (!of_get_drm_display_mode(np, mode, &bus_flags,
+					     OF_USE_NATIVE_MODE)) {
+			desc->modes = mode;
+			desc->num_modes = 1;
+			desc->bus_flags = bus_flags;
+		}
+	} else if (of_child_node_is_present(np, "panel-timing")) {
+		struct display_timing *timing;
+		struct videomode vm;
+
+		timing = devm_kzalloc(dev, sizeof(*timing), GFP_KERNEL);
+		if (!timing)
+			return -ENOMEM;
+
+		if (!of_get_display_timing(np, "panel-timing", timing)) {
+			desc->timings = timing;
+			desc->num_timings = 1;
+
+			bus_flags = 0;
+			vm.flags = timing->flags;
+			drm_bus_flags_from_videomode(&vm, &bus_flags);
+			desc->bus_flags = bus_flags;
+		}
+	}
+}
+else if(!first_flag && namtso_mipi_id == 2){
 	if (of_child_node_is_present(np, "display-timings1")) {
 		struct drm_display_mode *mode;
 
@@ -4758,13 +4794,25 @@ else{
 	of_property_read_u32(np, "unprepare-delay-ms", &desc->delay.unprepare);
 	//of_property_read_u32(np, "reset-delay-ms", &desc->delay.reset);
 	of_property_read_u32(np, "init-delay-ms", &desc->delay.init);
-	if(3 == namtso_mipi_id){//new TS050
-		printk("hlm new TS050 of_get_display_timings1\n");
-		data = of_get_property(np, "panel-init-sequence2", &len);
-	}
-	else{//old TS050
-		printk("hlm old TS050 of_get_display_timings\n");
-		data = of_get_property(np, "panel-init-sequence", &len);
+	printk("hlm first_flag=%d width-mm=%d\n", first_flag, desc->size.width);
+	if(first_flag){
+		if(3 == namtso_mipi_id2){//new TS050
+			printk("hlm new TS050 of_get_display_timings1\n");
+			data = of_get_property(np, "panel-init-sequence2", &len);
+		}
+		else{//old TS050
+			printk("hlm old TS050 of_get_display_timings\n");
+			data = of_get_property(np, "panel-init-sequence", &len);
+		}
+	}else{
+		if(3 == namtso_mipi_id){//new TS050
+			printk("hlm new TS050 of_get_display_timings1\n");
+			data = of_get_property(np, "panel-init-sequence2", &len);
+		}
+		else{//old TS050
+			printk("hlm old TS050 of_get_display_timings\n");
+			data = of_get_property(np, "panel-init-sequence", &len);
+		}
 	}
 	if (data) {
 		desc->init_seq = devm_kzalloc(dev, sizeof(*desc->init_seq),
@@ -4794,7 +4842,8 @@ else{
 			return err;
 		}
 	}
-
+	if(4 != namtso_mipi_id && 129 != desc->size.width)
+		first_flag = !first_flag;
 	return 0;
 }
 
@@ -5354,6 +5403,26 @@ static int __init namtso_mipi_id_para_setup(char *str)
 }
 __setup("namtso_mipi_id=", namtso_mipi_id_para_setup);
 
+static char lcd_propname2[1] = "0";
+static int __init namtso_mipi_id_para_setup2(char *str)
+{
+        if (str != NULL){
+                sprintf(lcd_propname2, "%s", str);
+		if(!strcmp(lcd_propname2, "4"))
+			namtso_mipi_id2 = 4;
+                else if(!strcmp(lcd_propname2, "3"))
+                        namtso_mipi_id2 = 3;
+		else if(!strcmp(lcd_propname2, "2"))
+			namtso_mipi_id2 = 2;
+		else if(!strcmp(lcd_propname2, "1"))
+			namtso_mipi_id2 = 1;
+		else
+			namtso_mipi_id2 = 0;
+	}
+        //printk("hlm xx lcd_propname2: %s  namtso_mipi_id2: %d\n", lcd_propname2, namtso_mipi_id2);
+        return 0;
+}
+__setup("namtso_mipi_id2=", namtso_mipi_id_para_setup2);
 module_init(panel_simple_init);
 
 static void __exit panel_simple_exit(void)
