@@ -142,10 +142,7 @@
 		regulator-boot-on;
 		regulator-always-on;
 		enable-active-high;
-		gpio = <&gpio2 RK_PB4 GPIO_ACTIVE_HIGH>;
 		vin-supply = <&vcc_5v0>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&fan_pwr_en_pin>;
 	};
 
 	vcc3v3_lcd1_en: vcc3v3-lcd1-en {
@@ -196,8 +193,8 @@
 		pinctrl-names = "default", "rts_gpio";
 		pinctrl-0 = <&uart6m0_rtsn>, <&bt_reset_gpio>, <&bt_wake_gpio>, <&bt_irq_gpio>;
 		pinctrl-1 = <&uart6_gpios>;
-		BT,reset_gpio    = <&gpio0 RK_PC6 GPIO_ACTIVE_HIGH>;
-		BT,wake_gpio     = <&gpio0 RK_PC5 GPIO_ACTIVE_HIGH>;
+		BT,reset_gpio    = <&gpio2 RK_PB4 GPIO_ACTIVE_HIGH>;
+		BT,wake_gpio     = <&gpio2 RK_PB3 GPIO_ACTIVE_HIGH>;
 		BT,wake_host_irq = <&gpio0 RK_PA0 GPIO_ACTIVE_HIGH>;
 		status = "okay";
 	};
@@ -769,24 +766,17 @@
 		};
 	};
 
-	fan {
-		fan_pwr_en_pin: fan-pwr-en-pin {
-			rockchip,pins =
-				<2 RK_PB4 RK_FUNC_GPIO &pcfg_pull_up>;
-		};
-	};
-
 	wireless-bluetooth {
 		uart6_gpios: uart6-gpios {
 			rockchip,pins = <2 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
 		bt_reset_gpio: bt-reset-gpio {
-			rockchip,pins = <0 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <2 RK_PB4 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
 		bt_wake_gpio: bt-wake-gpio {
-			rockchip,pins = <0 RK_PC5 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <2 RK_PB3 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
 		bt_irq_gpio: bt-irq-gpio {
