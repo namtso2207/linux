@@ -12,6 +12,7 @@
 #include "rk3588-linux.dtsi"
 #include "rk3588-namtso-a10-3588.dtsi"
 #include "rk3588-namtso-a10-3588-camera.dtsi"
+#include "rk3588-namtso-a10-3588-edp.dtsi"
 
 / {
     model = "Namtso A10-3588";
@@ -313,20 +314,20 @@
 	reset-gpios = <&gpio3 RK_PD4 GPIO_ACTIVE_HIGH>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&lcd2_rst_gpio>;
-	status = "okay";
+	status = "disabled";
 };
 
 &dsi1_panel {
-	status = "okay";
+	status = "disabled";
 	power-supply = <&vcc3v3_lcd2_en>;
 };
 
 &mipi_dcphy1 {
-	status = "okay";
+	status = "disabled";
 };
 
 &dsi1_in_vp2 {
-	status = "okay";
+	status = "disabled";
 };
 
 &dsi1_in_vp3 {
@@ -334,7 +335,7 @@
 };
 
 &route_dsi1 {
-	status = "okay";
+	status = "disabled";
 	connect = <&vp2_out_dsi1>;
 };
 
@@ -348,12 +349,12 @@
 	/* Use rgmii-rxid mode to disable rx delay inside Soc */
 	phy-mode = "rgmii-rxid";
 	clock_in_out = "output";
-
+	/*
 	snps,reset-gpio = <&gpio3 RK_PB7 GPIO_ACTIVE_HIGH>;
-	snps,reset-active-low;
-	/* Reset time is 20ms, 100ms for rtl8211f */
-	snps,reset-delays-us = <0 20000 100000>;
-
+	snps,reset-active-low; */
+	/* Reset time is 20ms, 100ms for rtl8211f 
+	snps,reset-delays-us = <0 20000 100000>; */
+	
 	wolirq-gpio = <&gpio0 RK_PC2 GPIO_ACTIVE_LOW>;
 	wolctrl-gpio = <&gpio4 RK_PC6 GPIO_ACTIVE_LOW>;
 
@@ -880,6 +881,12 @@
 	link {
 		link_io_pwren_gpio: link-io-pwren-gpio {
 			rockchip,pins = <4 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	edp {
+		vcc3vc_edp0_gpio: vcc3vc-edp0-gpio {
+			rockchip,pins = <3 RK_PB7 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 };
