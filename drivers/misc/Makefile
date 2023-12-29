@@ -65,3 +65,4 @@ obj-$(CONFIG_HISI_HIKEY_USB)	+= hisi_hikey_usb.o
 obj-$(CONFIG_UID_SYS_STATS)	+= uid_sys_stats.o
 obj-$(CONFIG_OPEN_DICE)		+= open-dice.o
 obj-$(CONFIG_KHADAS_MCU)    +=namtso-mcu.o
+obj-$(CONFIG_CH9434_UART_HUB) += ch9434.o

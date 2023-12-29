@@ -841,17 +841,13 @@
 	num-cs = <1>;
 	status = "okay";
 
-	spi_can@0 {
-		compatible =  "microchip,mcp2515";
-		reg = <0x00>;
-		clocks = <&mcp251x_clk>;
-		clock-frequency = <8000000>;
-		spi-max-frequency = <10000000>;
-		poll_mode = <0>;
-		enable_dma = <1>;
-		vdd-supply = <&vcc_3v3_ext>;
-		xceiver-supply = <&vcc_3v3_ext>;
+	spidev@0 {
 		status = "okay";
+		compatible = "ch943x_spi";
+		reg = <0>;
+		spi-max-frequency = <5000000>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <RK_PA6 IRQ_TYPE_LEVEL_LOW>;
 	};
 };
 
