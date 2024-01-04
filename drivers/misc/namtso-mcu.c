@@ -1,9 +1,9 @@
 /*
- * Namtso MCU control driver
+ * Namtso Edge MCU control driver
  *
- * Written by: Mark Wan <mark@khadas.com>
+ * Written by: Nick <nick@namtso.com>
  *
- * Copyright (C) 2022 Namtso Technologies Ltd.
+ * Copyright (C) 2022 Wesion Technologies Ltd.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -20,35 +20,47 @@
 #include <linux/slab.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
+#include <linux/regulator/consumer.h>
 
 /* Device registers */
-#define MCU_BOOT_EN_WOL_REG             0x21
+#define MCU_BOOT_EN_WOL_REG		  0x21
 #define MCU_PCIE_WOL_EN_REG				0x26
 #define MCU_BOOT_INIT_WOL		   		0x85
-#define MCU_PWR_OFF_CMD_REG       		0x80
-#define MCU_SHUTDOWN_NORMAL_REG   		0x2c
+//#define MCU_PWR_OFF_CMD_REG       0x80
+#define MCU_SHUTDOWN_NORMAL_REG   0x80
 
 /*Fan device*/
-#define MCU_CMD_FAN_STATUS_CTRL_REGv2   0x8A
+#define MCU_CMD_FAN_STATUS_CTRL_REGv2   0x82
 
-#define MCU_FAN_TRIG_TEMP_LEVEL0        60  // 50 degree if not set
-#define MCU_FAN_TRIG_TEMP_LEVEL1        80  // 60 degree if not set
-#define MCU_FAN_TRIG_TEMP_LEVEL2        100 // 70 degree if not set
+#define MCU_FAN_TRIG_TEMP_LEVEL0        50
+#define MCU_FAN_TRIG_TEMP_LEVEL1        60
+#define MCU_FAN_TRIG_TEMP_LEVEL2        65
+#define MCU_FAN_TRIG_TEMP_LEVEL3        70
+#define MCU_FAN_TRIG_TEMP_LEVEL4        75
+#define MCU_FAN_TRIG_TEMP_LEVEL5        80
 #define MCU_FAN_TRIG_MAXTEMP            105
 #define MCU_FAN_LOOP_SECS               (30 * HZ)   // 30 seconds
 #define MCU_FAN_TEST_LOOP_SECS          (5 * HZ)  // 5 seconds
 #define MCU_FAN_LOOP_NODELAY_SECS       0
 #define MCU_FAN_SPEED_OFF               0
-#define MCU_FAN_SPEED_LOW               1
-#define MCU_FAN_SPEED_MID               2
-#define MCU_FAN_SPEED_HIGH              3
+#define MCU_FAN_SPEED_1              1
+#define MCU_FAN_SPEED_2              3
+#define MCU_FAN_SPEED_3              5
+#define MCU_FAN_SPEED_4              7
+#define MCU_FAN_SPEED_5              9
 #define MCU_FAN_SPEED_LOW_V2            0x32
 #define MCU_FAN_SPEED_MID_V2            0x48
 #define MCU_FAN_SPEED_HIGH_V2           0x64
 
+struct regulator *reg_vcc_3v3_ext;
 enum namtso_board {
 	NAMTSO_BOARD_NONE = 0,
 	NAMTSO_BOARD_A10_3588
+};
+
+enum namtso_board_hwver {
+	NAMTSO_BOARD_HWVER_NONE = 0,
+	NAMTSO_BOARD_HWVER_V11
 };
 
 enum mcu_fan_mode {
@@ -60,7 +72,9 @@ enum mcu_fan_level {
 	MCU_FAN_LEVEL_0 = 0,
 	MCU_FAN_LEVEL_1,
 	MCU_FAN_LEVEL_2,
-	MCU_FAN_LEVEL_3
+	MCU_FAN_LEVEL_3,
+	MCU_FAN_LEVEL_4,
+	MCU_FAN_LEVEL_5
 };
 
 enum mcu_fan_status {
@@ -69,16 +83,19 @@ enum mcu_fan_status {
 };
 
 struct mcu_fan_data {
-	struct platform_device *pdev;
-	struct class *fan_class;
-	struct delayed_work work;
-	struct delayed_work fan_test_work;
-	enum mcu_fan_status enable;
-	enum mcu_fan_mode mode;
-	enum mcu_fan_level level;
-	int trig_temp_level0;
-	int trig_temp_level1;
-	int trig_temp_level2;
+    struct platform_device *pdev;
+    struct class *fan_class;
+    struct delayed_work work;
+    struct delayed_work fan_test_work;
+    enum mcu_fan_status enable;
+    enum mcu_fan_mode mode;
+    enum mcu_fan_level level;
+    int trig_temp_level0;
+    int trig_temp_level1;
+    int trig_temp_level2;
+    int trig_temp_level3;
+    int trig_temp_level4;
+    int trig_temp_level5;
 };
 
 struct mcu_data {
@@ -88,10 +105,12 @@ struct mcu_data {
 	int wol_enable;
 	int pcie_eth_wol_enable;
 	enum namtso_board board;
+	enum namtso_board_hwver hwver;
 	struct mcu_fan_data fan_data;
 };
 
-static struct mcu_data *g_mcu_data;
+struct mcu_data *g_mcu_data;
+int ageing_test_flag = 0;
 
 extern void realtek_enable_wol(int enable, bool suspend);
 void mcu_enable_wol_eth0(int enable, bool suspend)
@@ -168,12 +187,34 @@ static int mcu_i2c_write_regs(struct i2c_client *client,
 	return ret;
 }
 
-static int is_mcu_fan_control_supported(void)
+int mcu_reboot_boot_mode(void)
 {
-	if (NAMTSO_BOARD_A10_3588 == g_mcu_data->board) {
-		return 1;
+	int ret;
+	u8 sendbuf=0;
+	sendbuf =2;
+
+	ret = mcu_i2c_write_regs(g_mcu_data->client, 0x91, &sendbuf, 1);
+	if(ret < 0){
+		printk("write mcu boot control err\r\n");
+		return ret;
 	}
 	return 0;
+}
+EXPORT_SYMBOL(mcu_reboot_boot_mode);
+
+static int is_mcu_fan_control_supported(void)
+{
+	// MCU FAN control is supported for:
+	// 1. Namtso EDGE2
+	if (g_mcu_data->board == NAMTSO_BOARD_A10_3588) {
+		if (g_mcu_data->hwver >= NAMTSO_BOARD_HWVER_V11)
+			return 1;
+		else
+			return 0;
+	} else {
+			return 0;
+	}
+
 }
 
 int init_wol_reg(void)
@@ -189,34 +230,51 @@ static bool is_mcu_wol_supported(void)
 	}
 	return 0;
 }
+
+static int is_mcu_mculed_control_supported(void)
+{
+	// MCU MCU LED control is supported for:
+	// 1. Namtso EDGE2 and later
+		//if (g_mcu_data->hwver >= NAMTSO_BOARD_HWVER_V10)
+			return 1;
+		//else
+			//return 0;
+}
+
 static void mcu_fan_level_set(struct mcu_fan_data *fan_data, int level)
 {
-	if (is_mcu_fan_control_supported()) {
-		int ret;
-		u8 data = 0;
+    if (is_mcu_fan_control_supported()) {
+        int ret;
+        u8 data = 0;
 
-		g_mcu_data->fan_data.level = level;
+        g_mcu_data->fan_data.level = level;
+
 		if (g_mcu_data->board == NAMTSO_BOARD_A10_3588) {
-			if (level == 0)
-				data = MCU_FAN_SPEED_OFF;
-			else if (level == 1)
-				data = MCU_FAN_SPEED_LOW_V2;
-			else if (level == 2)
-				data = MCU_FAN_SPEED_MID_V2;
-			else if (level == 3)
-				data = MCU_FAN_SPEED_HIGH_V2;
-			ret = mcu_i2c_write_regs(g_mcu_data->client,
-					MCU_CMD_FAN_STATUS_CTRL_REGv2,
-					&data, 1);
-			if (ret < 0) {
-				pr_debug("write fan control err\n");
-				return;
-			}
-		}
-	}
+            if (level == 0)
+                data = MCU_FAN_SPEED_OFF;
+            else if (level == 1)
+                data = MCU_FAN_SPEED_1;
+            else if (level == 2)
+                data = MCU_FAN_SPEED_2;
+            else if (level == 3)
+                data = MCU_FAN_SPEED_3;
+            else if (level == 4)
+                data = MCU_FAN_SPEED_4;
+            else if (level == 5)
+                data = MCU_FAN_SPEED_5;
+            ret = mcu_i2c_write_regs(g_mcu_data->client,
+                    MCU_CMD_FAN_STATUS_CTRL_REGv2,
+                    &data, 1);
+            if (ret < 0) {
+                pr_debug("write fan control err\n");
+                return;
+            }
+	      }
+    }
 }
 
 extern int rk_get_temperature(void);
+
 static void fan_work_func(struct work_struct *_work)
 {
     if (is_mcu_fan_control_supported()) {
@@ -224,21 +282,25 @@ static void fan_work_func(struct work_struct *_work)
         struct mcu_fan_data *fan_data = &g_mcu_data->fan_data;
 
 		if (g_mcu_data->board == NAMTSO_BOARD_A10_3588) {
-			temp = rk_get_temperature();
+            temp = rk_get_temperature();
 		} else {
-			temp = fan_data->trig_temp_level0;
+           temp = fan_data->trig_temp_level0;
 		}
 
 		if (temp != -EINVAL) {
-			if (temp < fan_data->trig_temp_level0)
-				mcu_fan_level_set(fan_data, 0);
-			else if (temp < fan_data->trig_temp_level1)
-				mcu_fan_level_set(fan_data, 1);
-			else if (temp < fan_data->trig_temp_level2)
-				mcu_fan_level_set(fan_data, 2);
-			else
-				mcu_fan_level_set(fan_data, 3);
-		}
+            if (temp < fan_data->trig_temp_level0)
+                mcu_fan_level_set(fan_data, 0);
+            else if (temp < fan_data->trig_temp_level1)
+                mcu_fan_level_set(fan_data, 1);
+            else if (temp < fan_data->trig_temp_level2)
+                mcu_fan_level_set(fan_data, 2);
+            else if (temp < fan_data->trig_temp_level3)
+                mcu_fan_level_set(fan_data, 3);
+            else if (temp < fan_data->trig_temp_level4)
+                mcu_fan_level_set(fan_data, 4);
+            else
+                mcu_fan_level_set(fan_data, 5);
+        }
 
         schedule_delayed_work(&fan_data->work, MCU_FAN_LOOP_SECS);
     }
@@ -247,39 +309,45 @@ static void fan_work_func(struct work_struct *_work)
 static void namtso_fan_set(struct mcu_fan_data  *fan_data)
 {
 	if (is_mcu_fan_control_supported()) {
-		cancel_delayed_work(&fan_data->work);
-		if (fan_data->enable == MCU_FAN_STATUS_DISABLE) {
-			mcu_fan_level_set(fan_data, 0);
-			return;
-		}
-		switch (fan_data->mode) {
-			case MCU_FAN_MODE_MANUAL:
-				switch (fan_data->level) {
-					case MCU_FAN_LEVEL_0:
-						mcu_fan_level_set(fan_data, 0);
-						break;
-					case MCU_FAN_LEVEL_1:
-						mcu_fan_level_set(fan_data, 1);
-						break;
-					case MCU_FAN_LEVEL_2:
-						mcu_fan_level_set(fan_data, 2);
-						break;
-					case MCU_FAN_LEVEL_3:
-						mcu_fan_level_set(fan_data, 3);
-						break;
-					default:
-						break;
-				}
-				break;
-			case MCU_FAN_MODE_AUTO:
-				// FIXME: achieve with a better way
-				schedule_delayed_work(&fan_data->work,
-						MCU_FAN_LOOP_NODELAY_SECS);
-				break;
-			default:
-				break;
-		}
-	}
+        cancel_delayed_work(&fan_data->work);
+        if (fan_data->enable == MCU_FAN_STATUS_DISABLE) {
+            mcu_fan_level_set(fan_data, 0);
+            return;
+        }
+        switch (fan_data->mode) {
+        case MCU_FAN_MODE_MANUAL:
+            switch (fan_data->level) {
+				case MCU_FAN_LEVEL_0:
+					mcu_fan_level_set(fan_data, 0);
+					break;
+				case MCU_FAN_LEVEL_1:
+					mcu_fan_level_set(fan_data, 1);
+					break;
+				case MCU_FAN_LEVEL_2:
+					mcu_fan_level_set(fan_data, 2);
+					break;
+				case MCU_FAN_LEVEL_3:
+					mcu_fan_level_set(fan_data, 3);
+					break;
+				case MCU_FAN_LEVEL_4:
+					mcu_fan_level_set(fan_data, 4);
+					break;
+				case MCU_FAN_LEVEL_5:
+					mcu_fan_level_set(fan_data, 5);
+					break;
+				default:
+					break;
+            }
+            break;
+		case MCU_FAN_MODE_AUTO:
+            // FIXME: achieve with a better way
+			schedule_delayed_work(&fan_data->work,
+                    MCU_FAN_LOOP_NODELAY_SECS);
+			break;
+		default:
+			break;
+        }
+    }
 }
 
 static ssize_t show_fan_enable(struct class *cls,
@@ -291,16 +359,16 @@ static ssize_t show_fan_enable(struct class *cls,
 static ssize_t store_fan_enable(struct class *cls, struct class_attribute *attr,
                const char *buf, size_t count)
 {
-	int enable;
+    int enable;
 
-	if (kstrtoint(buf, 0, &enable))
-		return -EINVAL;
+    if (kstrtoint(buf, 0, &enable))
+        return -EINVAL;
 
-	// 0: manual, 1: auto
-	if (enable >= 0 && enable < 2) {
-		g_mcu_data->fan_data.enable = enable;
-		namtso_fan_set(&g_mcu_data->fan_data);
-	}
+    // 0: manual, 1: auto
+    if (enable >= 0 && enable < 2) {
+        g_mcu_data->fan_data.enable = enable;
+        namtso_fan_set(&g_mcu_data->fan_data);
+    }
 
 	return count;
 }
@@ -343,7 +411,7 @@ static ssize_t store_fan_level(struct class *cls, struct class_attribute *attr,
     if (kstrtoint(buf, 0, &level))
         return -EINVAL;
 
-    if (level >= 0 && level < 4) {
+    if (level >= 0 && level < 6) {
         g_mcu_data->fan_data.level = level;
         namtso_fan_set(&g_mcu_data->fan_data);
     }
@@ -386,9 +454,43 @@ void fan_level_set(struct mcu_data *ug_mcu_data)
             mcu_fan_level_set(fan_data, 1);
         else if (temp < ug_mcu_data->fan_data.trig_temp_level2)
             mcu_fan_level_set(fan_data, 2);
-        else
+        else if (temp < ug_mcu_data->fan_data.trig_temp_level3)
             mcu_fan_level_set(fan_data, 3);
+        else if (temp < ug_mcu_data->fan_data.trig_temp_level4)
+            mcu_fan_level_set(fan_data, 4);
+        else
+            mcu_fan_level_set(fan_data, 5);
     }
+}
+
+
+static void mcu_mculed_set(int addr, int mode)
+{
+	int ret;
+	char reg;
+	u8 addr_val;
+
+	if (addr >= 0x23 && addr <= 0x24) {
+		reg = (char)mode;
+		addr_val = (u8)addr;
+		if (is_mcu_mculed_control_supported()) {
+			    ret = mcu_i2c_write_regs(g_mcu_data->client,addr_val,&reg, 1);
+				if (ret < 0)
+					pr_debug("write mcu led cmd error\n");
+				else
+					pr_debug("write mcu led cmd mode=%d\n",mode);
+		}
+	}else if(addr >= 0x25 && addr <= 0x2a) {
+		reg = (char)mode;
+		addr_val = (u8)addr;
+		if (is_mcu_mculed_control_supported()) {
+			    ret = mcu_i2c_write_regs(g_mcu_data->client,addr_val,&reg, 1);
+				if (ret < 0)
+					pr_debug("write mcu led cmd error\n");
+				else
+					pr_debug("write mcu led cmd mode=%d\n",mode);
+		}
+	}
 }
 
 static ssize_t show_fan_trigger_low(struct class *cls,
@@ -482,7 +584,7 @@ static ssize_t store_fan_trigger_high(struct class *cls,
 static ssize_t store_mcu_poweroff(struct class *cls,struct class_attribute *attr,
 				const char *buf, size_t count)
 {
-	int ret;
+	//int ret;
 	int val;
 	char reg;
 
@@ -494,13 +596,13 @@ static ssize_t store_mcu_poweroff(struct class *cls,struct class_attribute *attr
 
 	reg = (char)val;
 
-	ret = mcu_i2c_write_regs(g_mcu_data->client,MCU_PWR_OFF_CMD_REG,
+/* 	ret = mcu_i2c_write_regs(g_mcu_data->client,MCU_PWR_OFF_CMD_REG,
 							&reg, 1);
 	if (ret < 0) {
 		pr_debug("write poweroff cmd error\n");
 		return ret;
 	}
-
+ */
 	return count;
 }
 
@@ -522,6 +624,26 @@ static ssize_t store_mcu_rst(struct class *cls, struct class_attribute *attr,
 		return ret;
 	}
 
+	return count;
+}
+
+static ssize_t store_mculed_mode(struct class *cls,
+		struct class_attribute *attr,
+		const char *buf, size_t count)
+{
+    int reg;
+	int val;
+	int reg16;
+
+	if (kstrtoint(buf, 0, &reg16))
+		return -EINVAL;
+
+	printk("mcu===>reg16=0x%x\n",reg16);
+	reg = reg16>>8;
+	val = (int)((u8)reg16);
+
+	printk("mcu===>reg=0x%x,val=0x%x\n",reg,val);
+	mcu_mculed_set(reg,val);
 	return count;
 }
 
@@ -630,6 +752,7 @@ static struct class_attribute wol_class_attrs_eth1[] = {
 static struct class_attribute mcu_class_attrs[] = {
 	__ATTR(poweroff, 0644, NULL, store_mcu_poweroff),
 	__ATTR(rst, 0644, NULL, store_mcu_rst),
+	__ATTR(mculed, 0644, NULL, store_mculed_mode),
 };
 
 static void create_mcu_attrs(void) {
@@ -653,27 +776,25 @@ static void create_mcu_attrs(void) {
 	g_mcu_data->mcu_class = class_create(THIS_MODULE, "mcu");
 	if (IS_ERR(g_mcu_data->mcu_class)) {
 		pr_err("create mcu_class debug class fail\n");
+
 		return;
 	}
 	for (i = 0; i < ARRAY_SIZE(mcu_class_attrs); i++) {
 		if (class_create_file(g_mcu_data->mcu_class, &mcu_class_attrs[i]))
-		{
-			pr_err("create mcu attribute %s fail\n",
-							mcu_class_attrs[i].attr.name);
-		}
+			pr_err("create mcu attribute %s fail\n",mcu_class_attrs[i].attr.name);
 	}
 
 	if (is_mcu_fan_control_supported()) {
 		g_mcu_data->fan_data.fan_class = class_create(THIS_MODULE, "fan");
-		if (IS_ERR(g_mcu_data->fan_data.fan_class)) {
-			pr_err("create fan_class debug class fail\n");
-			return;
-		}
-		for (i = 0; i < ARRAY_SIZE(fan_class_attrs); i++) {
-			if (class_create_file(g_mcu_data->fan_data.fan_class,
-					&fan_class_attrs[i]))
-				pr_err("create fan attribute %s fail\n", fan_class_attrs[i].attr.name);
-		}
+			if (IS_ERR(g_mcu_data->fan_data.fan_class)) {
+				pr_err("create fan_class debug class fail\n");
+				return;
+			}
+			for (i = 0; i < ARRAY_SIZE(fan_class_attrs); i++) {
+				if (class_create_file(g_mcu_data->fan_data.fan_class,
+                        &fan_class_attrs[i]))
+					pr_err("create fan attribute %s fail\n", fan_class_attrs[i].attr.name);
+        }
 	}
 }
 
@@ -681,32 +802,45 @@ static int mcu_parse_dt(struct device *dev)
 {
 	int ret = 0;
 
-	if (NULL == dev)
-		return -EINVAL;
+	if (NULL == dev) return -EINVAL;
 
-	g_mcu_data->board = NAMTSO_BOARD_A10_3588;
 
-	ret = of_property_read_u32(dev->of_node,
-			"fan,trig_temp_level0",
-			&g_mcu_data->fan_data.trig_temp_level0);
-	if (ret < 0)
-		g_mcu_data->fan_data.trig_temp_level0 =
-			MCU_FAN_TRIG_TEMP_LEVEL0;
-	ret = of_property_read_u32(dev->of_node,
-			"fan,trig_temp_level1",
-			&g_mcu_data->fan_data.trig_temp_level1);
-	if (ret < 0)
-		g_mcu_data->fan_data.trig_temp_level1 =
-			MCU_FAN_TRIG_TEMP_LEVEL1;
-	ret = of_property_read_u32(dev->of_node,
-			"fan,trig_temp_level2",&g_mcu_data->fan_data.trig_temp_level2);
-	if (ret < 0){
-		g_mcu_data->fan_data.trig_temp_level2 =MCU_FAN_TRIG_TEMP_LEVEL2;
+	g_mcu_data->hwver = NAMTSO_BOARD_HWVER_V11;
+
+		ret = of_property_read_u32(dev->of_node,
+            "fan,trig_temp_level0",
+            &g_mcu_data->fan_data.trig_temp_level0);
+    if (ret < 0)
+        g_mcu_data->fan_data.trig_temp_level0 =
+            MCU_FAN_TRIG_TEMP_LEVEL0;
+    ret = of_property_read_u32(dev->of_node,
+            "fan,trig_temp_level1",
+            &g_mcu_data->fan_data.trig_temp_level1);
+    if (ret < 0)
+        g_mcu_data->fan_data.trig_temp_level1 =
+            MCU_FAN_TRIG_TEMP_LEVEL1;
+    ret = of_property_read_u32(dev->of_node,
+            "fan,trig_temp_level2",&g_mcu_data->fan_data.trig_temp_level2);
+    if (ret < 0){
+        g_mcu_data->fan_data.trig_temp_level2 =MCU_FAN_TRIG_TEMP_LEVEL2;
 	}
-
+    ret = of_property_read_u32(dev->of_node,
+            "fan,trig_temp_level3",&g_mcu_data->fan_data.trig_temp_level3);
+    if (ret < 0){
+        g_mcu_data->fan_data.trig_temp_level3 =MCU_FAN_TRIG_TEMP_LEVEL3;
+	}
+    ret = of_property_read_u32(dev->of_node,
+            "fan,trig_temp_level4",&g_mcu_data->fan_data.trig_temp_level4);
+    if (ret < 0){
+        g_mcu_data->fan_data.trig_temp_level4 =MCU_FAN_TRIG_TEMP_LEVEL4;
+	}
+    ret = of_property_read_u32(dev->of_node,
+            "fan,trig_temp_level5",&g_mcu_data->fan_data.trig_temp_level5);
+    if (ret < 0){
+        g_mcu_data->fan_data.trig_temp_level5 =MCU_FAN_TRIG_TEMP_LEVEL5;
+	}
 	return ret;
 }
-
 
 static int mcu_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
@@ -744,11 +878,14 @@ static int mcu_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	g_mcu_data->fan_data.mode = MCU_FAN_MODE_AUTO;
 	g_mcu_data->fan_data.level = MCU_FAN_LEVEL_0;
 	g_mcu_data->fan_data.enable = MCU_FAN_STATUS_ENABLE;
+	g_mcu_data->board = NAMTSO_BOARD_A10_3588;
+
 	INIT_DELAYED_WORK(&g_mcu_data->fan_data.work, fan_work_func);
 	mcu_fan_level_set(&g_mcu_data->fan_data, 0);
 	schedule_delayed_work(&g_mcu_data->fan_data.work, MCU_FAN_LOOP_SECS);
 	create_mcu_attrs();
-
+	reg_vcc_3v3_ext = devm_regulator_get(&client->dev, "vcc_3v3_ext");
+	ret = regulator_enable(reg_vcc_3v3_ext);
 	return 0;
 }
 
@@ -760,28 +897,32 @@ static int mcu_remove(struct i2c_client *client)
 
 static void namtso_fan_shutdown(struct i2c_client *client)
 {
-	g_mcu_data->fan_data.enable = MCU_FAN_STATUS_DISABLE;
-	namtso_fan_set(&g_mcu_data->fan_data);
+    g_mcu_data->fan_data.enable = MCU_FAN_STATUS_DISABLE;
+    namtso_fan_set(&g_mcu_data->fan_data);
 }
 
 #ifdef CONFIG_PM_SLEEP
 static int namtso_fan_suspend(struct device *dev)
 {
-	cancel_delayed_work(&g_mcu_data->fan_data.work);
-	mcu_fan_level_set(&g_mcu_data->fan_data, 0);
+	int ret;
+    cancel_delayed_work(&g_mcu_data->fan_data.work);
+    mcu_fan_level_set(&g_mcu_data->fan_data, 0);
 
-	return 0;
+	ret = regulator_disable(reg_vcc_3v3_ext);
+    return 0;
 }
 
 static int namtso_fan_resume(struct device *dev)
 {
-	namtso_fan_set(&g_mcu_data->fan_data);
+	int ret;
+    namtso_fan_set(&g_mcu_data->fan_data);
 
-	return 0;
+	ret = regulator_enable(reg_vcc_3v3_ext);
+    return 0;
 }
 
 static const struct dev_pm_ops fan_dev_pm_ops = {
-	SET_SYSTEM_SLEEP_PM_OPS(namtso_fan_suspend, namtso_fan_resume)
+    SET_SYSTEM_SLEEP_PM_OPS(namtso_fan_suspend, namtso_fan_resume)
 };
 
 #define FAN_PM_OPS (&(fan_dev_pm_ops))
@@ -817,6 +958,6 @@ struct i2c_driver mcu_driver = {
 };
 module_i2c_driver(mcu_driver);
 
-MODULE_AUTHOR("Mark Wan <mark@namtso.com>");
+MODULE_AUTHOR("Nick <nick@namtso.com>");
 MODULE_DESCRIPTION("Namtso A10-3588 MCU control driver");
 MODULE_LICENSE("GPL");
