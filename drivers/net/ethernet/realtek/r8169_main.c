@@ -5187,7 +5187,7 @@ static int r8169_mdio_register(struct rtl8169_private *tp)
 	}
 
 	/* PHY will be woken up in rtl_open() */
-	phy_suspend(tp->phydev);
+	//phy_suspend(tp->phydev);
 
 	return 0;
 }
