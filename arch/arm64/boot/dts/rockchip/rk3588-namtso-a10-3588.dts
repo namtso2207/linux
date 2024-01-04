@@ -625,7 +625,7 @@
 
 &i2c4 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&i2c5m0_xfer>;
+	pinctrl-0 = <&i2c4m3_xfer>;
 	status = "okay";
 };
 
