@@ -1249,8 +1249,8 @@ static int ch943x_probe(struct spi_device *spi,
 
 	dev_dbg(dev, "%s - devm_request_threaded_irq =%d result:%d\n", __func__, irq, ret);
 
-	s->reg485 |= 1 << (&s->p[RS485_UART_INDEX].port)->line;
-	ch943x_port_write_spefify(&s->p[RS485_UART_INDEX].port, 0, CH943X_RS485_REG, s->reg485);
+	// s->reg485 |= 1 << (&s->p[RS485_UART_INDEX].port)->line;
+	// ch943x_port_write_spefify(&s->p[RS485_UART_INDEX].port, 0, CH943X_RS485_REG, s->reg485);
 	
 	if (!ret)
 		return 0;
