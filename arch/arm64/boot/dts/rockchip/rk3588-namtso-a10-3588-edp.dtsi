@@ -94,8 +94,10 @@
 };
 
 &edp0 {
-	force-hpd;
 	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&edp0_hpd>;
+	hpd-gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;
 
 	ports {
 		port@1 {
@@ -125,4 +127,12 @@
 &pwm6 {
        pinctrl-0 = <&pwm6m1_pins>;
        status = "okay";
+};
+
+&pinctrl {
+	edp {
+		edp0_hpd: edp0-hpd {
+			rockchip,pins = <1 RK_PA5 0 &pcfg_pull_none>;
+		};
+	};
 };
