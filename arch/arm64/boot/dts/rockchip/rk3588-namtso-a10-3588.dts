@@ -909,6 +909,13 @@
 	};
 };
 
+&spi3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi3m0_cs0 &spi3m0_pins>;
+	num-cs = <1>;
+	status = "okay";
+};
+
 &can1 {
         status = "okay";
         assigned-clocks = <&cru CLK_CAN1>;
