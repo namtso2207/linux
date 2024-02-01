@@ -5329,6 +5329,7 @@ static irqreturn_t pcie_net_wol_isr(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
+int init_pcie_wol_reg(void);
 static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
 	struct rtl8169_private *tp;
@@ -5531,6 +5532,7 @@ static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	if (pci_dev_run_wake(pdev))
 		pm_runtime_put_sync(&pdev->dev);
 
+	init_pcie_wol_reg();
 	global_tp = tp;
 
 	return 0;
