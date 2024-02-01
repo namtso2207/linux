@@ -16,6 +16,33 @@
 #include <linux/of.h>
 #include <linux/platform_device.h>
 
+static struct input_dev *sinput_dev;
+void rk_send_power_key(int state)
+{
+	if (!sinput_dev)
+		return;
+	if (state) {
+		input_report_key(sinput_dev, KEY_POWER, 1);
+		input_sync(sinput_dev);
+	} else {
+		input_report_key(sinput_dev, KEY_POWER, 0);
+		input_sync(sinput_dev);
+	}
+}
+EXPORT_SYMBOL(rk_send_power_key);
+
+void rk_send_wakeup_key(void)
+{
+	if (!sinput_dev)
+		return;
+
+	input_report_key(sinput_dev, KEY_WAKEUP, 1);
+	input_sync(sinput_dev);
+	input_report_key(sinput_dev, KEY_WAKEUP, 0);
+	input_sync(sinput_dev);
+}
+EXPORT_SYMBOL(rk_send_wakeup_key);
+
 static irqreturn_t pwrkey_fall_irq(int irq, void *_pwr)
 {
 	struct input_dev *pwr = _pwr;
@@ -92,6 +119,7 @@ static int rk805_pwrkey_probe(struct platform_device *pdev)
 		return err;
 	}
 
+	sinput_dev = pwr;
 	platform_set_drvdata(pdev, pwr);
 	device_init_wakeup(&pdev->dev, true);
 

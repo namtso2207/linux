@@ -2848,16 +2848,16 @@ static irqreturn_t wol_io_isr(int irq, void *dev_id)
 	struct net_device *dev = (struct net_device *)dev_id;
 	struct stmmac_priv *priv = netdev_priv(dev);
 
-	if (1 == priv->plat->wol_suspend_count || 0 == priv->plat->wol_suspended)
+	if (/*1 == priv->plat->wol_suspend_count || */1 == priv->plat->wol_suspended)
 	{
 		printk("%s: WOL wakeup!\n", __func__);
 		rk_send_power_key(1);
 		rk_send_power_key(0);
 	}
-	else
+	/*else
 	{
 		priv->plat->wol_suspended = 0;
-	}
+	}*/
 
 	return IRQ_HANDLED;
 }
@@ -5352,7 +5352,7 @@ int stmmac_suspend(struct device *dev)
 	u32 chan;
 	
 	priv->plat->wol_suspended = 1;
-	priv->plat->wol_suspend_count++;
+	//priv->plat->wol_suspend_count++;
 	enable_irq_wake(priv->plat->wol_irq);
 
 	if (!ndev || !netif_running(ndev))

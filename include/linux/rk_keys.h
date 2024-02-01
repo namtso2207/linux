@@ -8,7 +8,7 @@
 #ifndef _RK_KEYS_H
 #define _RK_KEYS_H
 
-static inline void rk_send_power_key(int state) { }
-static inline void rk_send_wakeup_key(void) { }
+void rk_send_power_key(int state);
+void rk_send_wakeup_key(void);
 
 #endif
