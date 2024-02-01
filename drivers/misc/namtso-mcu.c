@@ -26,6 +26,7 @@
 #define MCU_BOOT_EN_WOL_REG		  0x21
 #define MCU_PCIE_WOL_EN_REG				0x26
 #define MCU_BOOT_INIT_WOL		   		0x85
+#define MCU_BOOT_INIT_PCIE_WOL			0x89
 //#define MCU_PWR_OFF_CMD_REG       0x80
 #define MCU_SHUTDOWN_NORMAL_REG   0x80
 
@@ -234,6 +235,12 @@ int init_wol_reg(void)
 	unsigned char status = 1;
 	return mcu_i2c_write_regs(g_mcu_data->client, MCU_BOOT_INIT_WOL, &status, 1);
 }
+
+int init_pcie_wol_reg(void)
+{
+	unsigned char status = 1;
+	return mcu_i2c_write_regs(g_mcu_data->client, MCU_BOOT_INIT_PCIE_WOL, &status, 1);
+} EXPORT_SYMBOL(init_pcie_wol_reg);
 
 static bool is_mcu_wol_supported(void)
 {
