@@ -107,10 +107,16 @@ struct mcu_data {
 	enum namtso_board board;
 	enum namtso_board_hwver hwver;
 	struct mcu_fan_data fan_data;
+	void (*pcie_net_ctrl)(int);
 };
 
 struct mcu_data *g_mcu_data;
 int ageing_test_flag = 0;
+
+void register_pcie_eth_ctrl_interface(void (*callback)(int))
+{
+	g_mcu_data->pcie_net_ctrl = callback;
+} EXPORT_SYMBOL(register_pcie_eth_ctrl_interface);
 
 extern void realtek_enable_wol(int enable, bool suspend);
 void mcu_enable_wol_eth0(int enable, bool suspend)
@@ -118,12 +124,18 @@ void mcu_enable_wol_eth0(int enable, bool suspend)
 	pr_info("enable:[%d]  suspend:[%d]\n", enable, suspend);
 	realtek_enable_wol(enable, suspend);
 }
-void realtek_pcie_eth_set_wol_enable(int enable);
 void mcu_enable_wol_eth1(int enable)
 {
 	pr_info("enable:[%d]\n", enable);
-	realtek_pcie_eth_set_wol_enable(enable);
+	if (NULL != g_mcu_data->pcie_net_ctrl) {
+		g_mcu_data->pcie_net_ctrl(enable);
+	}
 }
+int realtek_get_pcie_wol_enable(void)
+{
+	return g_mcu_data->pcie_eth_wol_enable;
+} EXPORT_SYMBOL(realtek_get_pcie_wol_enable);
+
 static int i2c_master_reg8_send(const struct i2c_client *client,
 		const char reg, const char *buf, int count)
 {
