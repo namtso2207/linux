@@ -5056,6 +5056,36 @@ int stmmac_reinit_ringparam(struct net_device *dev, u32 rx_size, u32 tx_size)
 	return ret;
 }
 
+static int stmmac_dvr_mac_addr_overlay(struct stmmac_priv * priv)
+{
+	int i = 0;
+	char mac_buf[32] = {'\0'};
+	unsigned int mac_addr[6] = {0};
+	int mac_content_offset = 5;
+	int mac_content_len = 17;
+	char * mac_begin = strstr(saved_command_line, "gmac=");
+	char * mac_begin_real = mac_begin + mac_content_offset;
+	if((NULL != mac_begin) && (NULL != mac_begin_real)) {
+		for (i=0; i<mac_content_len; i++) {
+			if ((*mac_begin_real >= '0' && *mac_begin_real <= ':') ||
+				(*mac_begin_real >= 'a' && *mac_begin_real <= 'f') ||
+				(*mac_begin_real >= 'A' && *mac_begin_real <= 'F')) {
+				mac_buf[i] = *mac_begin_real++;
+			}
+		}
+	}
+	if (mac_content_len != strlen(mac_buf)) {
+		return -1;
+	}
+	sscanf(mac_buf, "%x:%x:%x:%x:%x:%x", &mac_addr[0], &mac_addr[1], &mac_addr[2], &mac_addr[3], &mac_addr[4], &mac_addr[5]);
+	dev_info(priv->device, "stmmac_addr: %x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+	for (i=0; i<sizeof(mac_addr)/sizeof(mac_addr[0]); i++) {
+		priv->dev->dev_addr[i] = (unsigned char)mac_addr[i];
+	}
+
+	return 0;
+}
+
 /**
  * stmmac_dvr_probe
  * @device: device pointer
@@ -5135,6 +5165,7 @@ int stmmac_dvr_probe(struct device *device,
 		goto error_hw_init;
 
 	stmmac_check_ether_addr(priv);
+	stmmac_dvr_mac_addr_overlay(priv);
 
 	ndev->netdev_ops = &stmmac_netdev_ops;
 
