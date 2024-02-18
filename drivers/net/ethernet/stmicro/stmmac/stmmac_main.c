@@ -3039,7 +3039,7 @@ static int stmmac_open(struct net_device *dev)
 			goto lpiirq_error;
 		}
 		pr_info("gmac_wol_io irq ok: [%d]\n",  priv->plat->wol_irq);
-		device_init_wakeup(&dev->dev, 1);
+		disable_irq(priv->plat->wol_irq);
 		enable_irq_wake(priv->plat->wol_irq);
 	}
 
@@ -5397,7 +5397,7 @@ int stmmac_suspend(struct device *dev)
 	
 	priv->plat->wol_suspended = 1;
 	priv->plat->wol_suspend_count++;
-	enable_irq_wake(priv->plat->wol_irq);
+	enable_irq(priv->plat->wol_irq);
 
 	if (!ndev || !netif_running(ndev))
 		return 0;
@@ -5491,7 +5491,7 @@ int stmmac_resume(struct device *dev)
 	int ret;
 
 	priv->plat->wol_suspended = 0;
-	disable_irq_wake(priv->plat->wol_irq);
+	disable_irq(priv->plat->wol_irq);
 
 	if (!netif_running(ndev))
 		return 0;
