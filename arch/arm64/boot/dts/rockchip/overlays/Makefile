@@ -1,3 +1,3 @@
-dtbo-y  += i2c2.dtbo dsi1.dtbo
+dtbo-y  += pwm-gpio-overlay.dtbo spi-gpio-overlay.dtbo
 targets += $(dtbo-y)
 always  := $(dtbo-y)

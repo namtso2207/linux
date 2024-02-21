@@ -3,7 +3,7 @@
 
 / {
 	fragment@0 {
-		target = <&dsi1>;
+		target = <&pwm4>;
 
 		__overlay__ {
 			status = "disabled";
