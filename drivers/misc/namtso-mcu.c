@@ -113,6 +113,7 @@ struct mcu_data {
 
 struct mcu_data *g_mcu_data;
 int ageing_test_flag = 0;
+int icm43600 = 0;//0:NG,1:OK
 int key_test_flag = 0;
 
 void register_pcie_eth_ctrl_interface(void (*callback)(int))
@@ -753,6 +754,12 @@ static ssize_t store_wol_enable_eth1(struct class *cls, struct class_attribute *
 	return count;
 }
 
+static ssize_t show_icm43600(struct class *cls,
+				struct class_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", icm43600);
+}
+
 static ssize_t show_wol_enable_eth0(struct class *cls,
 				struct class_attribute *attr, char *buf)
 {
@@ -790,6 +797,7 @@ static struct class_attribute mcu_class_attrs[] = {
 	__ATTR(rst, 0644, NULL, store_mcu_rst),
 	__ATTR(mculed, 0644, NULL, store_mculed_mode),
 	__ATTR(dpmode, 0644, show_dpmode_temp, NULL),
+	__ATTR(icm43600, 0644, show_icm43600, NULL),
 	__ATTR(key_test, 0644, NULL, store_key_test),
 };
 

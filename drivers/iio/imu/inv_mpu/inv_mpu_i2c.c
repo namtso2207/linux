@@ -279,6 +279,7 @@ static int inv_i2c_mem_read(struct inv_mpu_state *st, u8 mpu_addr, u16 mem_addr,
 /*
  *  inv_mpu_probe() - probe function.
  */
+extern int icm43600;
 static int inv_mpu_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
@@ -394,7 +395,7 @@ static int inv_mpu_probe(struct i2c_client *client,
 #ifdef TIMER_BASED_BATCHING
 	pr_info("Timer based batching\n");
 #endif
-
+    icm43600 = 1;
 	return 0;
 
 out_unreg_iio:
