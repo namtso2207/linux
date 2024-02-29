@@ -21,8 +21,11 @@
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/regulator/consumer.h>
-
+#include <linux/delay.h>
 #define MCU_AGEING_TEST	0x1B
+#define MCU_LAN_MAC_SWITCH  0x2C
+#define MCU_LAN_MAC_ID  0x0
+#define MCU_USID        0x12
 /* Device registers */
 #define MCU_BOOT_EN_WOL_REG		  0x21
 #define MCU_PCIE_WOL_EN_REG				0x26
@@ -116,6 +119,50 @@ struct mcu_data *g_mcu_data;
 int ageing_test_flag = 0;
 int icm43600 = 0;//0:NG,1:OK
 int key_test_flag = 0;
+
+int StringToHex(char *str, unsigned char *out, unsigned int *outlen)
+{
+	char *p = str;
+	char high = 0, low = 0;
+	int tmplen = strlen(p), cnt = 0;
+	tmplen = strlen(p);
+	while(cnt < (tmplen / 2))
+	{
+		high = ((*p > '9') && ((*p <= 'F') || (*p <= 'f'))) ? *p - 48 - 7 : *p - 48;
+		low = (*(++ p) > '9' && ((*p <= 'F') || (*p <= 'f'))) ? *(p) - 48 - 7 : *(p) - 48;
+		out[cnt] = ((high & 0x0f) << 4 | (low & 0x0f));
+		p ++;
+		cnt ++;
+	}
+	if(tmplen % 2 != 0) out[cnt] = ((*p > '9') && ((*p <= 'F') || (*p <= 'f'))) ? *p - 48 - 7 : *p - 48;
+
+	if(outlen != NULL) *outlen = tmplen / 2 + tmplen % 2;
+	return tmplen / 2 + tmplen % 2;
+}
+
+void HexToAscii(unsigned char *pHex, unsigned char *pAscii, int nLen)
+{
+    unsigned char Nibble[2];
+    unsigned int i,j;
+    for (i = 0; i < nLen; i++){
+        Nibble[0] = (pHex[i] & 0xF0) >> 4;
+        Nibble[1] = pHex[i] & 0x0F;
+        for (j = 0; j < 2; j++){
+            if (Nibble[j] < 10){
+                Nibble[j] += 0x30;
+            }
+            else{
+                if (Nibble[j] < 16)
+                    Nibble[j] = Nibble[j] - 10 + 'A';
+            }
+
+            *pAscii++ = Nibble[j];
+            if(i==(nLen-1) && j==1){
+               *pAscii = '\0';
+            }
+        }
+    }
+}
 
 void register_pcie_eth_ctrl_interface(void (*callback)(int))
 {
@@ -755,6 +802,108 @@ static ssize_t store_wol_enable_eth1(struct class *cls, struct class_attribute *
 	return count;
 }
 
+static ssize_t show_mac_addr(struct class *cls,
+				struct class_attribute *attr, char *buf)
+{
+	int ret;
+	unsigned char addr_Ascii[13]={0};
+	unsigned char addr[6]={0};
+	int i;
+
+	for(i=0; i<=5; i++){
+		ret = mcu_i2c_read_regs(g_mcu_data->client, MCU_LAN_MAC_ID+i, &addr[i], 1);
+		if (ret < 0)
+			printk("%s: mac address failed (%d)",__func__, ret);
+		//printk("%s: mac address: %02x\n",__func__, addr[i]);
+	}
+
+	HexToAscii(addr,addr_Ascii,6);
+	printk("show_mac_addr: (%s)\n", addr_Ascii);
+
+	return sprintf(buf, "%s\n", addr_Ascii);
+}
+
+static ssize_t store_mac_addr(struct class *cls, struct class_attribute *attr,
+				const char *buf, size_t count)
+{
+	int ret;
+	char addr_Ascii[13]={0};
+	unsigned char addr[6]={0};
+	int outlen = 0;
+	int i;
+
+	sscanf(buf,"%s",addr_Ascii);
+
+	StringToHex(addr_Ascii,addr,&outlen);
+	printk("store_mac_addr: %02x:%02x:%02x:%02x:%02x:%02x\n",
+			addr[0], addr[1], addr[2],
+			addr[3], addr[4], addr[5]);
+	for(i=0; i<=5; i++){
+		ret = mcu_i2c_write_regs(g_mcu_data->client, MCU_LAN_MAC_ID+i, &addr[i], 1);
+		if (ret < 0)
+			printk("%s: mac address failed (%d)\n",__func__, ret);
+	}
+	msleep(10);
+	addr[0] = 1;
+	ret = mcu_i2c_write_regs(g_mcu_data->client, MCU_LAN_MAC_SWITCH, addr, 1);
+	if (ret < 0)
+		printk("%s: mac address failed (%d)\n",__func__, ret);
+	return count;
+}
+
+static ssize_t show_usid_addr(struct class *cls,
+				struct class_attribute *attr, char *buf)
+{
+	int ret;
+	unsigned char addr_usid[15]={0};
+	unsigned char addr[7]={0};
+	int i;
+
+	for(i=0; i<=6; i++){
+		ret = mcu_i2c_read_regs(g_mcu_data->client, MCU_USID+i, &addr[i], 1);
+		if (ret < 0) 
+			printk("%s: usid address failed (%d)",__func__, ret);
+		//printk("%s: mac address: %02x\n",__func__, addr[i]);
+	}
+	HexToAscii(addr,addr_usid,7);
+	printk("usid address (%s)\n", addr_usid);
+
+	return sprintf(buf, "%s\n", addr_usid);
+}	
+
+static ssize_t store_usid_addr(struct class *cls, struct class_attribute *attr,
+				const char *buf, size_t count)
+{
+	int ret;
+	char addr_usid[15]={0};
+	unsigned char addr[7]={0};
+	int outlen = 0;
+	int i;
+	//81 1
+	//82 73 61 64 61 68 4B
+	//81 0
+	
+	sscanf(buf,"%s",addr_usid);
+	
+	ret=StringToHex(addr_usid,addr,&outlen);
+	if (ret <=0){
+		printk("%s: input usid String error (%d)\n",__func__, ret);
+		return ret;
+	}
+	
+	printk("usid address: %02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
+			addr[0], addr[1], addr[2],
+			addr[3], addr[4], addr[5], addr[6]);
+	for(i=0; i<=6; i++){
+		ret = mcu_i2c_write_regs(g_mcu_data->client, MCU_USID+i, &addr[i], 1);
+		if (ret < 0){
+			printk("%s: usid address failed (%d)\n",__func__, ret);
+			return ret;
+		}
+	}
+	return count;
+}
+
 static ssize_t show_ageing_test(struct class *cls,
 				struct class_attribute *attr, char *buf)
 {
@@ -831,6 +980,8 @@ static struct class_attribute mcu_class_attrs[] = {
 	__ATTR(rst, 0644, NULL, store_mcu_rst),
 	__ATTR(mculed, 0644, NULL, store_mculed_mode),
 	__ATTR(dpmode, 0644, show_dpmode_temp, NULL),
+	__ATTR(mac_addr, 0644, show_mac_addr, store_mac_addr),
+	__ATTR(sn_addr, 0644, show_usid_addr, store_usid_addr),
 	__ATTR(ageing_test, 0644, show_ageing_test, store_ageing_test),
 	__ATTR(icm43600, 0644, show_icm43600, NULL),
 	__ATTR(key_test, 0644, NULL, store_key_test),
