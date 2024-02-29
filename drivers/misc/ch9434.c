@@ -13,11 +13,11 @@
  * V1.00 - initial version
  */
 
-#define DEBUG
+/*#define DEBUG
 #define VERBOSE_DEBUG
 
 #undef DEBUG
-#undef VERBOSE_DEBUG
+#undef VERBOSE_DEBUG*/
 
 #include <linux/bitops.h>
 #include <linux/clk.h>
@@ -639,7 +639,7 @@ static void ch943x_port_irq(struct ch943x_port *s, int portno)
 			ch943x_port_write_spefify(port, 0, CH943X_FIFO_REG, port->line | CH943X_FIFO_RD_BIT);
 			rxlen = ch943x_port_read_specify(port, 0, CH943X_FIFOCL_REG);
 			rxlen |= ch943x_port_read_specify(port, 0, CH943X_FIFOCH_REG) << 8;
-			dev_err(&s->spi_dev->dev, "%s rxlen = %d\n", __func__, rxlen);
+			//dev_err(&s->spi_dev->dev, "%s rxlen = %d\n", __func__, rxlen);
 			if (rxlen)
 				ch943x_handle_rx(port, rxlen, iir);
 			break;
