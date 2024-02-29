@@ -22,6 +22,7 @@
 #include <linux/of_address.h>
 #include <linux/regulator/consumer.h>
 
+#define MCU_AGEING_TEST	0x1B
 /* Device registers */
 #define MCU_BOOT_EN_WOL_REG		  0x21
 #define MCU_PCIE_WOL_EN_REG				0x26
@@ -666,11 +667,11 @@ static ssize_t store_mculed_mode(struct class *cls,
 	if (kstrtoint(buf, 0, &reg16))
 		return -EINVAL;
 
-	printk("mcu===>reg16=0x%x\n",reg16);
+	//printk("mcu===>reg16=0x%x\n",reg16);
 	reg = reg16>>8;
 	val = (int)((u8)reg16);
 
-	printk("mcu===>reg=0x%x,val=0x%x\n",reg,val);
+	//printk("mcu===>reg=0x%x,val=0x%x\n",reg,val);
 	mcu_mculed_set(reg,val);
 	return count;
 }
@@ -754,6 +755,39 @@ static ssize_t store_wol_enable_eth1(struct class *cls, struct class_attribute *
 	return count;
 }
 
+static ssize_t show_ageing_test(struct class *cls,
+				struct class_attribute *attr, char *buf)
+{
+	int ret;
+	unsigned char addr[1]={0};
+
+	ret = mcu_i2c_read_regs(g_mcu_data->client, MCU_AGEING_TEST, addr, 1);
+	if (ret < 0)
+		printk("%s: AGEING_TEST failed (%d)",__func__, ret);
+
+	return sprintf(buf, "%d\n", addr[0]);
+}
+
+static ssize_t store_ageing_test(struct class *cls, struct class_attribute *attr,
+				const char *buf, size_t count)
+{
+	u8 reg[2];
+	int ret;
+	int enable;
+
+	if (kstrtoint(buf, 0, &enable))
+		return -EINVAL;
+	reg[0] = enable;
+	ret = mcu_i2c_write_regs(g_mcu_data->client, MCU_AGEING_TEST, reg, 1);
+	if (ret < 0) {
+		printk("ageing_test state err\n");
+		return ret;
+	}
+	printk("ageing_test state: %d\n", enable);
+	ageing_test_flag = 1;
+	return count;
+}
+
 static ssize_t show_icm43600(struct class *cls,
 				struct class_attribute *attr, char *buf)
 {
@@ -797,6 +831,7 @@ static struct class_attribute mcu_class_attrs[] = {
 	__ATTR(rst, 0644, NULL, store_mcu_rst),
 	__ATTR(mculed, 0644, NULL, store_mculed_mode),
 	__ATTR(dpmode, 0644, show_dpmode_temp, NULL),
+	__ATTR(ageing_test, 0644, show_ageing_test, store_ageing_test),
 	__ATTR(icm43600, 0644, show_icm43600, NULL),
 	__ATTR(key_test, 0644, NULL, store_key_test),
 };
