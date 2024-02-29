@@ -113,6 +113,7 @@ struct mcu_data {
 
 struct mcu_data *g_mcu_data;
 int ageing_test_flag = 0;
+int key_test_flag = 0;
 
 void register_pcie_eth_ctrl_interface(void (*callback)(int))
 {
@@ -769,6 +770,15 @@ static ssize_t show_wol_enable_eth1(struct class *cls,
 	return sprintf(buf, "%d\n", enable);
 }
 
+static ssize_t store_key_test(struct class *cls, struct class_attribute *attr,
+				const char *buf, size_t count)
+{
+	if (kstrtoint(buf, 0, &key_test_flag))
+		return -EINVAL;
+	printk("key_test_flag: %d\n", key_test_flag);
+	return count;
+}
+
 static struct class_attribute wol_class_attrs_eth0[] = {
 	__ATTR(eth0_enable, 0644, show_wol_enable_eth0, store_wol_enable_eth0),
 };
@@ -780,6 +790,7 @@ static struct class_attribute mcu_class_attrs[] = {
 	__ATTR(rst, 0644, NULL, store_mcu_rst),
 	__ATTR(mculed, 0644, NULL, store_mculed_mode),
 	__ATTR(dpmode, 0644, show_dpmode_temp, NULL),
+	__ATTR(key_test, 0644, NULL, store_key_test),
 };
 
 static void create_mcu_attrs(void) {
