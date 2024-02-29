@@ -112,7 +112,7 @@ static int es8316_reset(struct snd_soc_component *component)
 static void es8316_enable_spk(struct es8316_priv *es8316, bool enable)
 {
 	bool level;
-
+return;
 	if (es8316->hp_inserted)
 		enable = 0;
 
