@@ -845,6 +845,12 @@
 	};
 };
 
+&sfc {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&fspim1_pins>;
+};
+
 &spi1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&spi1m2_cs0 &spi1m2_pins>;
