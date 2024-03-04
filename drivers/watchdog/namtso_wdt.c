@@ -92,7 +92,7 @@ static void create_namtso_attrs(void)
 	int i;
 	struct class *namtso_class;
 	printk("%s\n",__func__);
-	namtso_class = class_create(THIS_MODULE, "namtso");
+	namtso_class = class_create(THIS_MODULE, "namtso_watchdog");
 	if (IS_ERR(namtso_class)) {
 		pr_err("create namtso_class debug class fail\n");
 		return;

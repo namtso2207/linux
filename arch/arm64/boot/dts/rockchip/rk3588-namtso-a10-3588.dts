@@ -56,7 +56,7 @@
 
 	namtso_wdt {
 		compatible = "linux,wdt-namtso";
-		status = "disabled";
+		status = "okay";
 		hw_margin_ms = <500>;
 		hw-gpios = <&gpio0 RK_PB0 GPIO_ACTIVE_HIGH>;
 	};
