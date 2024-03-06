@@ -27,6 +27,7 @@
 #define MCU_PCIE_WOL_EN_REG				0x26
 #define MCU_BOOT_INIT_WOL		   		0x85
 #define MCU_BOOT_INIT_PCIE_WOL			0x89
+#define MCU_CHECK_LINK_INSERT_REG		0x88
 //#define MCU_PWR_OFF_CMD_REG       0x80
 #define MCU_SHUTDOWN_NORMAL_REG   0x80
 
@@ -241,6 +242,13 @@ int init_pcie_wol_reg(void)
 	unsigned char status = 1;
 	return mcu_i2c_write_regs(g_mcu_data->client, MCU_BOOT_INIT_PCIE_WOL, &status, 1);
 } EXPORT_SYMBOL(init_pcie_wol_reg);
+
+int mcu_check_link_is_insert(void)
+{
+	unsigned char reg = 0x1;
+	mcu_i2c_read_regs(g_mcu_data->client, MCU_CHECK_LINK_INSERT_REG, &reg, 1);
+	return !reg;
+}
 
 static bool is_mcu_wol_supported(void)
 {
@@ -854,9 +862,11 @@ static void create_mcu_attrs(void) {
 			if (class_create_file(g_mcu_data->wol_class, &wol_class_attrs_eth0[i]))
 				pr_err("create wol attribute %s fail\n", wol_class_attrs_eth0[i].attr.name);
 		}
-		for (i = 0; i < ARRAY_SIZE(wol_class_attrs_eth1); i++) {
-			if (class_create_file(g_mcu_data->wol_class, &wol_class_attrs_eth1[i]))
-				pr_err("create wol attribute %s fail\n", wol_class_attrs_eth1[i].attr.name);
+		if (mcu_check_link_is_insert()) {
+			for (i = 0; i < ARRAY_SIZE(wol_class_attrs_eth1); i++) {
+				if (class_create_file(g_mcu_data->wol_class, &wol_class_attrs_eth1[i]))
+					pr_err("create wol attribute %s fail\n", wol_class_attrs_eth1[i].attr.name);
+			}
 		}
 	}
 	g_mcu_data->mcu_class = class_create(THIS_MODULE, "mcu");
