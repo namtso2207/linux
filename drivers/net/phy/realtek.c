@@ -97,15 +97,6 @@ void realtek_enable_wol(int enable, bool suspend)
 	wol_enable = enable & 0x01;
 } EXPORT_SYMBOL(realtek_enable_wol);
 
-static int __init init_wol_state(char *str)
-{
-	wol_enable = simple_strtol(str, NULL, 0);
-	printk("%s, wol_enable=%d\b",__func__, wol_enable);
-
-	return 1;
-}
-__setup("wol_enable=", init_wol_state);
-
 #ifdef CONFIG_PM
 void rtl8211f_shutdown(void) {
 	if (wol_enable && g_phydev) {

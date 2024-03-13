@@ -84,6 +84,12 @@ enum mcu_fan_status {
 	MCU_FAN_STATUS_ENABLE,
 };
 
+enum {
+	WOL_DISABLE = 0,
+	WOL_ENABLE_WAKE  = 1,
+	WOL_ENABLE_ALL = 3,
+};
+
 struct mcu_fan_data {
     struct platform_device *pdev;
     struct class *fan_class;
@@ -760,10 +766,14 @@ static ssize_t store_wol_enable_eth0(struct class *cls, struct class_attribute *
 	u8 reg[2];
 	int ret;
 	int enable;
-	int state;
 
 	if (kstrtoint(buf, 0, &enable))
 		return -EINVAL;
+
+	if ((WOL_DISABLE != enable) && (WOL_ENABLE_WAKE != enable) && (WOL_ENABLE_ALL != enable)) {
+		pr_err("%d is not support, \n", enable);
+		return -EINVAL;
+	}
 
 	ret = mcu_i2c_read_regs(g_mcu_data->client, MCU_BOOT_EN_WOL_REG,
 					reg, 1);
@@ -771,10 +781,9 @@ static ssize_t store_wol_enable_eth0(struct class *cls, struct class_attribute *
 		printk("write wol state err\n");
 		return ret;
 	}
-	state = (int)reg[0];
-	reg[0] = enable | (state & 0x02);
-	ret = mcu_i2c_write_regs(g_mcu_data->client, MCU_BOOT_EN_WOL_REG,
-								reg, 1);
+	reg[0] = (unsigned char)(enable & (0x3<<0));
+	
+	ret = mcu_i2c_write_regs(g_mcu_data->client, MCU_BOOT_EN_WOL_REG, reg, 1);
 	if (ret < 0) {
 		printk("write wol state err\n");
 		return ret;
@@ -793,10 +802,14 @@ static ssize_t store_wol_enable_eth1(struct class *cls, struct class_attribute *
 	u8 reg[2];
 	int ret;
 	int enable;
-	int state;
 
 	if (kstrtoint(buf, 0, &enable))
 		return -EINVAL;
+
+	if ((WOL_DISABLE != enable) && (WOL_ENABLE_WAKE != enable) && (WOL_ENABLE_ALL != enable)) {
+		pr_err("%d is not support, \n", enable);
+		return -EINVAL;
+	}
 
 	ret = mcu_i2c_read_regs(g_mcu_data->client, MCU_PCIE_WOL_EN_REG,
 					reg, 1);
@@ -804,8 +817,8 @@ static ssize_t store_wol_enable_eth1(struct class *cls, struct class_attribute *
 		printk("write wol state err\n");
 		return ret;
 	}
-	state = (int)reg[0];
-	reg[0] = enable | (state & 0x02);
+	reg[0] = (unsigned char)(enable & (0x3<<0));
+
 	ret = mcu_i2c_write_regs(g_mcu_data->client, MCU_PCIE_WOL_EN_REG,
 								reg, 1);
 	if (ret < 0) {
@@ -825,7 +838,7 @@ static ssize_t show_wol_enable_eth0(struct class *cls,
 {
 	int enable;
 
-	enable = g_mcu_data->wol_enable & 0x01;
+	enable = g_mcu_data->wol_enable;
 	return sprintf(buf, "%d\n", enable);
 }
 static ssize_t show_wol_enable_eth1(struct class *cls,
@@ -833,7 +846,7 @@ static ssize_t show_wol_enable_eth1(struct class *cls,
 {
 	int enable;
 
-	enable = g_mcu_data->pcie_eth_wol_enable & 0x01;
+	enable = g_mcu_data->pcie_eth_wol_enable;
 	return sprintf(buf, "%d\n", enable);
 }
 
@@ -959,7 +972,7 @@ static int mcu_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	ret = mcu_i2c_read_regs(client, MCU_BOOT_EN_WOL_REG, reg, 1);
 	if (ret < 0)
 		pr_err("mcu_i2c_read_regs failed: [%d]\n", MCU_BOOT_EN_WOL_REG);
-	g_mcu_data->wol_enable = (int)reg[0] & 0x01;
+	g_mcu_data->wol_enable = (int)reg[0];
 	if (g_mcu_data->wol_enable) {
 		mcu_enable_wol_eth0(g_mcu_data->wol_enable, false);
 	}
