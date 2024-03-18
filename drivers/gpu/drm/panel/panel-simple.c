@@ -4681,7 +4681,7 @@ static int panel_simple_of_get_desc_data(struct device *dev,
 	static bool first_flag = 0;
 
 printk("hlm first_flag=%d namtso_mipi_id=%d namtso_mipi_id2=%d\n", first_flag,namtso_mipi_id,namtso_mipi_id2);
-if(first_flag && namtso_mipi_id2 == 2){
+if((0 == namtso_mipi_id || first_flag) && namtso_mipi_id2 == 2){
 	if (of_child_node_is_present(np, "display-timings1")) {
 		struct drm_display_mode *mode;
 
