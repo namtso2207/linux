@@ -157,15 +157,17 @@ printk("hlm xx of_get_display_timings first_flag=%d namtso_mipi_id=%d namtso_mip
 	if(first_flag || (0 == namtso_mipi_id && 0 != namtso_mipi_id2)){
 		if(2 == namtso_mipi_id2){
 				timings_np = of_get_child_by_name(np, "display-timings1");
-		}
-		else{
+		}else if(namtso_mipi_id2 == 3){//new TS050
+			    timings_np = of_get_child_by_name(np, "display-timings2");
+		}else{//old TS050
 				timings_np = of_get_child_by_name(np, "display-timings");
 		}
 	}else{
 		if(2 == namtso_mipi_id){
 			timings_np = of_get_child_by_name(np, "display-timings1");
-		}
-		else{
+		}else if(namtso_mipi_id == 3){//new TS050
+			timings_np = of_get_child_by_name(np, "display-timings2");
+		}else{//old TS050
 			timings_np = of_get_child_by_name(np, "display-timings");
 		}
 	}
