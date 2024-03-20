@@ -361,6 +361,8 @@ int main(int argc, char *argv[])
 		dt_to_asm(outf, dti, outversion);
 	} else if (streq(outform, "null")) {
 		/* do nothing */
+	} else if (streq(outform, "dtbo")) {
+		dt_to_blob(outf, dti, outversion);
 	} else {
 		die("Unknown output format \"%s\"\n", outform);
 	}

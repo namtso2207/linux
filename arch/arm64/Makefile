@@ -209,13 +209,16 @@ endef
 
 MAKE_MODULES ?= y
 
+DTDO_SRC := $(wildcard arch/arm64/boot/dts/rockchip/overlays/*.dts)
+DTBO_OBJ := $(patsubst %.dts,%.dtbo,$(DTDO_SRC))
+
 %.img:
 ifeq ("$(CONFIG_MODULES)$(MAKE_MODULES)$(srctree)","yy$(objtree)")
-	$(Q)$(MAKE) rockchip/$*.dtb Image.lz4 modules
+	$(Q)$(MAKE) rockchip/$*.dtb  $(DTBO_OBJ) Image.lz4 modules
 else
 	$(Q)$(MAKE) rockchip/$*.dtb Image.lz4
 endif
 	$(Q)$(srctree)/scripts/mkimg --dtb $*.dtb
 
 CLEAN_DIRS += out
-CLEAN_FILES += boot.img kernel.img resource.img zboot.img
+CLEAN_FILES += boot.img kernel.img resource.img zboot.img $(DTBO_OBJ)
