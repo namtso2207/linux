@@ -431,6 +431,10 @@
 	connect = <&vp0_out_hdmi1>;
 };
 
+&reboot_mode {
+	mode-reboot_test = <BOOT_REBOOT_TEST>;
+};
+
 &i2c0 {
     status = "okay";
 
