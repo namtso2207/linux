@@ -12,6 +12,9 @@
 #include <video/display_timing.h>
 #include <video/of_display_timing.h>
 
+#define DSI0_NODE	("dsi@fde20000")
+#define DSI1_NODE	("dsi@fde30000")
+
 /**
  * parse_timing_property - parse timing_entry from device_node
  * @np: device_node with the property
@@ -149,12 +152,20 @@ struct display_timings *of_get_display_timings(const struct device_node *np)
 
 	if (!np)
 		return NULL;
-	if (strstr(saved_command_line, "lcd_panel=ts101")) {
-		timings_np = of_get_child_by_name(np, "display-timings1");
-	} else if (strstr(saved_command_line, "lcd_panel=ts050")){
-		timings_np = of_get_child_by_name(np, "display-timings");
-	} else {
-		timings_np = of_get_child_by_name(np, "display-timings");
+
+	timings_np = of_get_child_by_name(np, "display-timings");
+	if (NULL != np->parent->full_name) {
+		if (!strncmp(DSI0_NODE, np->parent->full_name, strlen(np->parent->full_name)-1)) {
+			if (strstr(saved_command_line, "lcd_panel=ts101")) {
+				timings_np = of_get_child_by_name(np, "display-timings1");
+			}
+		}
+
+		if (!strncmp(DSI1_NODE, np->parent->full_name, strlen(np->parent->full_name)-1)) {
+			if (strstr(saved_command_line, "lcd_sec_panel=ts101")) {
+				timings_np = of_get_child_by_name(np, "display-timings1");
+			}
+		}
 	}
 
 	if (!timings_np) {

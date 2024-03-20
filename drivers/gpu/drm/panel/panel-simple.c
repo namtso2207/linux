@@ -43,6 +43,9 @@
 
 #include "panel-simple.h"
 
+#define DSI0_NODE	("dsi@fde20000")
+#define DSI1_NODE	("dsi@fde30000")
+
 enum panel_simple_cmd_type {
 	CMD_TYPE_DEFAULT,
 	CMD_TYPE_SPI
@@ -4730,11 +4733,21 @@ static int panel_simple_of_get_desc_data(struct device *dev,
 //	of_property_read_u32(np, "reset-delay-ms", &desc->delay.reset);
 	of_property_read_u32(np, "init-delay-ms", &desc->delay.init);
 
-	if(strstr(saved_command_line, "lcd_panel=newts050")) {
-		data = of_get_property(np, "panel-init-sequence2", &len);
-	} else {
-		data = of_get_property(np, "panel-init-sequence", &len);
+	data = of_get_property(np, "panel-init-sequence", &len);
+	if (NULL != dev->of_node->parent->full_name) {
+		if (!strncmp(DSI0_NODE, dev->of_node->parent->full_name, strlen(dev->of_node->parent->full_name)-1)) {
+			if (strstr(saved_command_line, "lcd_panel=newts050")) {
+				data = of_get_property(np, "panel-init-sequence2", &len);
+			}
+		}
+
+		if (!strncmp(DSI1_NODE, dev->of_node->parent->full_name, strlen(dev->of_node->parent->full_name)-1)) {
+			if (strstr(saved_command_line, "lcd_sec_panel=newts050")) {
+				data = of_get_property(np, "panel-init-sequence2", &len);
+			}
+		}
 	}
+
 	if (data) {
 		desc->init_seq = devm_kzalloc(dev, sizeof(*desc->init_seq),
 					      GFP_KERNEL);

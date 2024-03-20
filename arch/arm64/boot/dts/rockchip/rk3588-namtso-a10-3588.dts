@@ -245,7 +245,7 @@
 	status = "okay";
 };
 
-&dp1_in_vp0 {
+&dp1_in_vp2 {
 	status = "okay";
 };
 
@@ -314,20 +314,20 @@
 	reset-gpios = <&gpio3 RK_PD4 GPIO_ACTIVE_HIGH>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&lcd2_rst_gpio>;
-	status = "disabled";
+	status = "okay";
 };
 
 &dsi1_panel {
-	status = "disabled";
+	status = "okay";
 	power-supply = <&vcc3v3_lcd2_en>;
 };
 
 &mipi_dcphy1 {
-	status = "disabled";
+	status = "okay";
 };
 
 &dsi1_in_vp2 {
-	status = "disabled";
+	status = "okay";
 };
 
 &dsi1_in_vp3 {
@@ -335,7 +335,7 @@
 };
 
 &route_dsi1 {
-	status = "disabled";
+	status = "okay";
 	connect = <&vp2_out_dsi1>;
 };
 
