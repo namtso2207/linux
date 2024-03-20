@@ -257,7 +257,7 @@
 &backlight_mipi1 {
 	pwms = <&pwm10 0 25000 0>;
 	power-supply = <&vcc3v3_lcd2_en>;
-	status = "disabled";
+	status = "okay";
 };
 
 &pwm10 {
@@ -309,11 +309,11 @@
 	reset-gpios = <&gpio3 RK_PD4 GPIO_ACTIVE_HIGH>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&lcd2_rst_gpio>;
-	status = "disabled";
+	status = "okay";
 };
 
 &dsi1_panel {
-	status = "disabled";
+	status = "okay";
 	power-supply = <&vcc3v3_lcd2_en>;
 };
 
@@ -322,7 +322,7 @@
 };
 
 &dsi1_in_vp2 {
-	status = "disabled";
+	status = "okay";
 };
 
 &dsi1_in_vp3 {
@@ -330,8 +330,8 @@
 };
 
 &route_dsi1 {
-	status = "disabled";
-	connect = <&vp3_out_dsi1>;
+	status = "okay";
+	connect = <&vp2_out_dsi1>;
 };
 
 &sfc {
