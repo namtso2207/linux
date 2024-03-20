@@ -47,6 +47,30 @@
 			};
 		};
 	};
+
+	os08a10_cam1: os08a10_cam1@36 {
+		compatible = "ovti,os08a10";
+		status = "okay";
+		reg = <0x36>;
+		clocks = <&cru CLK_MIPI_CAMARAOUT_M1>;
+		clock-names = "xvclk";
+		power-domains = <&power RK3588_PD_VI>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipim0_camera1_clk>, <&cam1_reset_gpio>;
+		rockchip,grf = <&sys_grf>;
+		reset-gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_LOW>;
+		power-gpios = <&gpio1 RK_PB1 GPIO_ACTIVE_HIGH>;
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "default";
+		rockchip,camera-module-lens-name = "default";
+		port {
+			os08a10_cam1_out: endpoint {
+				remote-endpoint = <&mipi_in_dcphy4>;
+				data-lanes = <1 2 3 4>;
+			};
+		};
+	};
 };
 
 &csi2_dcphy1 {
@@ -63,6 +87,12 @@
 			mipi_in_dcphy1: endpoint@1 {
 				reg = <1>;
 				remote-endpoint = <&imx415_cam1_out>;
+				data-lanes = <1 2 3 4>;
+			};
+
+			mipi_in_dcphy4: endpoint@2 {
+				reg = <2>;
+				remote-endpoint = <&os08a10_cam1_out>;
 				data-lanes = <1 2 3 4>;
 			};
 		};
@@ -191,6 +221,30 @@
 			};
 		};
 	};
+
+	os08a10_cam2: os08a10_cam2@36 {
+		compatible = "ovti,os08a10";
+		status = "okay";
+		reg = <0x36>;
+		clocks = <&cru CLK_MIPI_CAMARAOUT_M2>;
+		clock-names = "xvclk";
+		power-domains = <&power RK3588_PD_VI>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipim0_camera2_clk>, <&cam2_reset_gpio>;
+		rockchip,grf = <&sys_grf>;
+		reset-gpios = <&gpio1 RK_PA7 GPIO_ACTIVE_LOW>;
+		power-gpios = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>;
+		rockchip,camera-module-index = <1>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "default";
+		rockchip,camera-module-lens-name = "default";
+		port {
+			os08a10_cam2_out: endpoint {
+				remote-endpoint = <&mipi_in_dcphy3>;
+				data-lanes = <1 2 3 4>;
+			};
+		};
+	};
 };
 
 &csi2_dcphy0 {
@@ -207,6 +261,12 @@
 			mipi_in_dcphy0: endpoint@1 {
 				reg = <1>;
 				remote-endpoint = <&imx415_cam2_out>;
+				data-lanes = <1 2 3 4>;
+			};
+
+			mipi_in_dcphy3: endpoint@2 {
+				reg = <2>;
+				remote-endpoint = <&os08a10_cam2_out>;
 				data-lanes = <1 2 3 4>;
 			};
 		};
@@ -344,6 +404,29 @@
 			};
 		};
 	};
+
+	os08a10_cam3: os08a10_cam3@36 {
+		compatible = "ovti,os08a10";
+		status = "okay";
+		reg = <0x36>;
+		clocks = <&cru CLK_MIPI_CAMARAOUT_M3>;
+		clock-names = "xvclk";
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipim0_camera3_clk>, <&cam3_reset_gpio>;
+		power-domains = <&power RK3588_PD_VI>;
+		reset-gpios = <&gpio1 RK_PB3 GPIO_ACTIVE_LOW>;
+		power-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
+		rockchip,camera-module-index = <2>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "default";
+		rockchip,camera-module-lens-name = "default";
+		port {
+			os08a10c_cam3_out: endpoint {
+				remote-endpoint = <&mipidphy0_in_ucam1>;
+				data-lanes = <1 2 3 4>;
+			};
+		};
+	};
 };
 
 &csi2_dphy0 {
@@ -360,6 +443,12 @@
 			mipidphy0_in_ucam0: endpoint@1 {
 				reg = <1>;
 				remote-endpoint = <&imx415c_cam3_out>;
+				data-lanes = <1 2 3 4>;
+			};
+
+			mipidphy0_in_ucam1: endpoint@2 {
+				reg = <2>;
+				remote-endpoint = <&os08a10c_cam3_out>;
 				data-lanes = <1 2 3 4>;
 			};
 		};
@@ -494,6 +583,28 @@
 			};
 		};
 	};
+
+	os08a10_cam4: os08a10_cam4@36 {
+		compatible = "ovti,os08a10";
+		reg = <0x36>;
+		clocks = <&cru CLK_MIPI_CAMARAOUT_M4>;
+		clock-names = "xvclk";
+		pinctrl-names = "default";
+		pinctrl-0 = <&mipim0_camera4_clk>, <&cam4_reset_gpio>;
+		power-domains = <&power RK3588_PD_VI>;
+		reset-gpios = <&gpio1 RK_PB5 GPIO_ACTIVE_LOW>;
+		power-gpios = <&gpio1 RK_PC6 GPIO_ACTIVE_HIGH>;
+		rockchip,camera-module-index = <3>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "default";
+		rockchip,camera-module-lens-name = "default";
+		port {
+			os08a10_cam4_out0: endpoint {
+				remote-endpoint = <&mipidphy1_in_ucam1>;
+				data-lanes = <1 2 3 4>;
+			};
+		};
+	};
 };
 
 &csi2_dphy3 {
@@ -510,6 +621,12 @@
 			mipidphy1_in_ucam0: endpoint@1 {
 				reg = <1>;
 				remote-endpoint = <&imx415_cam4_out0>;
+				data-lanes = <1 2 3 4>;
+			};
+
+			mipidphy1_in_ucam1: endpoint@2 {
+				reg = <2>;
+				remote-endpoint = <&os08a10_cam4_out0>;
 				data-lanes = <1 2 3 4>;
 			};
 		};
