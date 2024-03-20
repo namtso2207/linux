@@ -639,7 +639,7 @@ struct rtl8169_private {
 typedef void (*rtl_generic_fct)(struct rtl8169_private *tp);
 
 #define PCIE_NET_WOL_IRQ_GPIO	(22)	//GPIO0_C6
-static int pcie_eth_wol_enable = 0;
+static struct rtl8169_private * global_tp = NULL;
 
 MODULE_AUTHOR("Realtek and the Linux r8169 crew <netdev@vger.kernel.org>");
 MODULE_DESCRIPTION("RealTek RTL-8169 Gigabit Ethernet driver");
@@ -1436,13 +1436,6 @@ static void __rtl8169_set_wol(struct rtl8169_private *tp, u32 wolopts)
 	tp->dev->wol_enabled = wolopts ? 1 : 0;
 }
 
-void realtek_pcie_eth_set_wol_enable(int enable)
-{
-	if (enable&0x1) {
-		pcie_eth_wol_enable = 0x1;
-	}
-}
-
 static void realtek_pcie_eth_set_wol(struct rtl8169_private * tp, int enable)
 {
 	if (enable) {
@@ -1452,6 +1445,17 @@ static void realtek_pcie_eth_set_wol(struct rtl8169_private * tp, int enable)
 		}
 		__rtl8169_set_wol(tp, set_val);
 	}
+}
+
+void realtek_pcie_eth_set_wol_external(int enable)
+{
+	realtek_pcie_eth_set_wol(global_tp, enable);
+}
+
+void register_pcie_eth_ctrl_interface(void (*callback)(int));
+void register_module_in_ctrl_interface(void)
+{
+	register_pcie_eth_ctrl_interface(realtek_pcie_eth_set_wol_external);
 }
 
 static int rtl8169_set_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
@@ -4764,6 +4768,7 @@ static void rtl8169_down(struct rtl8169_private *tp)
 	rtl_pll_power_down(tp);
 }
 
+int realtek_get_pcie_wol_enable(void);
 static void rtl8169_up(struct rtl8169_private *tp)
 {
 	pci_set_master(tp->pci_dev);
@@ -4774,7 +4779,7 @@ static void rtl8169_up(struct rtl8169_private *tp)
 	rtl_reset_work(tp);
 
 	phy_start(tp->phydev);
-	realtek_pcie_eth_set_wol(tp, pcie_eth_wol_enable);
+	realtek_pcie_eth_set_wol(tp, realtek_get_pcie_wol_enable());
 }
 
 static int rtl8169_close(struct net_device *dev)
@@ -5525,6 +5530,8 @@ static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	if (pci_dev_run_wake(pdev))
 		pm_runtime_put_sync(&pdev->dev);
+
+	global_tp = tp;
 
 	return 0;
 }
