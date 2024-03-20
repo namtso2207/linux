@@ -33,6 +33,27 @@
  		};
  	};
 
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&white_led_gpio &ext_led_gpio>;
+
+		white_led {
+			gpios = <&gpio0 RK_PC7 GPIO_ACTIVE_HIGH>;
+			label = "white_led";
+			linux,default-trigger = "none";
+			default-state = "on";
+		};
+
+		ext_led {
+			gpios = <&gpio0 RK_PD0 GPIO_ACTIVE_HIGH>;
+			label = "ext_led";
+			linux,default-trigger = "none";
+			default-state = "on";
+		};
+	};
+
+
 	fan: pwm-fan {
 		compatible = "pwm-fan";
 		#cooling-cells = <2>;
@@ -767,6 +788,15 @@
 	touch {
 		tp_rst_gpio: tp-rst-gpio {
 			rockchip,pins = <0 RK_PC0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	led {
+		white_led_gpio: white-led-gpio {
+			rockchip,pins = <0 RK_PC7 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+		ext_led_gpio: ext-led-gpio {
+			rockchip,pins = <0 RK_PD0 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 };
