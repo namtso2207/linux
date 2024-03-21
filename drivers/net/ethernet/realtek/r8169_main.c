@@ -4769,6 +4769,7 @@ static void rtl8169_down(struct rtl8169_private *tp)
 }
 
 int realtek_get_pcie_wol_enable(void);
+int init_pcie_wol_reg(void);
 static void rtl8169_up(struct rtl8169_private *tp)
 {
 	pci_set_master(tp->pci_dev);
@@ -4779,6 +4780,7 @@ static void rtl8169_up(struct rtl8169_private *tp)
 	rtl_reset_work(tp);
 
 	phy_start(tp->phydev);
+	init_pcie_wol_reg();
 	realtek_pcie_eth_set_wol(tp, realtek_get_pcie_wol_enable());
 }
 
@@ -5329,7 +5331,6 @@ static irqreturn_t pcie_net_wol_isr(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-int init_pcie_wol_reg(void);
 static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
 	struct rtl8169_private *tp;
@@ -5532,7 +5533,6 @@ static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	if (pci_dev_run_wake(pdev))
 		pm_runtime_put_sync(&pdev->dev);
 
-	init_pcie_wol_reg();
 	global_tp = tp;
 
 	return 0;
