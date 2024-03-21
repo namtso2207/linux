@@ -1068,6 +1068,7 @@ static long gyro_dev_ioctl(struct file *file,
 	struct sensor_private_data *sensor = g_sensor[SENSOR_TYPE_GYROSCOPE];
 	struct i2c_client *client = sensor->client;
 	void __user *argp = (void __user *)arg;
+	struct sensor_axis axis;
 	int result = 0;
 	int rate;
 
@@ -1131,6 +1132,16 @@ static long gyro_dev_ioctl(struct file *file,
 				goto error;
 			}
 		}
+		break;
+	case L3G4200D_IOCTL_GETDATA:
+		mutex_lock(&sensor->data_mutex);
+        memcpy(&axis, &sensor->axis, sizeof(sensor->axis));
+        mutex_unlock(&sensor->data_mutex);
+		if (copy_to_user(argp, &axis, sizeof(axis))) {
+            dev_err(&client->dev, "failed to copy sense data to user space.\n");
+            result = -EFAULT;
+            goto error;
+        }
 		break;
 	default:
 		return -ENOTTY;
@@ -1447,7 +1458,7 @@ static int sensor_misc_device_register(struct sensor_private_data *sensor, int t
 			sensor->fops.release = gsensor_dev_release;
 
 			sensor->miscdev.minor = MISC_DYNAMIC_MINOR;
-			sensor->miscdev.name = "mma8452_daemon";
+			sensor->miscdev.name = "accel";
 			sensor->miscdev.fops = &sensor->fops;
 		} else {
 			memcpy(&sensor->miscdev, sensor->ops->misc_dev, sizeof(*sensor->ops->misc_dev));

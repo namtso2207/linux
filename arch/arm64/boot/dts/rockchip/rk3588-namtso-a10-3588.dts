@@ -608,21 +608,22 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&i2c3m0_xfer>;
 
-	invn_icm_i2c: icm42688@68 {
+	icm42607_acc: icm_acc@68 {
 		status = "okay";
-		compatible = "invensense,icm43600";
+		compatible = "icm42607_acc";
 		reg = <0x68>;
-		interrupt-parent = <&gpio1>;
-		interrupts = <RK_PD5 GPIO_ACTIVE_HIGH>;
-		axis_map_x = <1>;
-		axis_map_y = <0>;
-		axis_map_z = <2>;
-		negate_x = <1>;
-		negate_y = <0>;
-		negate_z = <0>;
-		inven,secondary_type = "none";
-		inven,aux_type = "none";
-		inven,read_only_slave_type = "none";
+		poll_delay_ms = <30>;
+		type = <SENSOR_TYPE_ACCEL>;
+		layout = <0>;
+	};
+
+	icm42607_gyro: icm_gyro@68 {
+		status = "okay";
+		compatible = "icm42607_gyro";
+		reg = <0x68>;
+		poll_delay_ms = <30>;
+		type = <SENSOR_TYPE_GYROSCOPE>;
+		layout = <0>;
 	};
 
 	es8316: es8316@10 {
