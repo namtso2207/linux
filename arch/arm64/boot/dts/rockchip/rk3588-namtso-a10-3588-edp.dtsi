@@ -60,11 +60,11 @@
 			hactive = <2560>;
 			vactive = <1600>;
 			hfront-porch = <140>;
-			hsync-len = <32>;
-			hback-porch = <48>;
-			vfront-porch = <51>;
-			vsync-len = <6>;
-			vback-porch = <3>;
+			hsync-len = <30>;
+			hback-porch = <30>;
+			vfront-porch = <40>;
+			vsync-len = <10>;
+			vback-porch = <10>;
 			hsync-active = <0>;
 			vsync-active = <0>;
 			de-active = <0>;
@@ -96,8 +96,10 @@
 };
 
 &edp0 {
-	force-hpd;
 	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&edp0_hpd>;
+	hpd-gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;
 
 	ports {
 		port@1 {
@@ -127,4 +129,12 @@
 &pwm6 {
        pinctrl-0 = <&pwm6m1_pins>;
        status = "okay";
+};
+
+&pinctrl {
+        edp {
+                edp0_hpd: edp0-hpd {
+                        rockchip,pins = <1 RK_PA5 0 &pcfg_pull_none>;
+                };
+        };
 };
