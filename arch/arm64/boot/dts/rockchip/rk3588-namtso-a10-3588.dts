@@ -700,7 +700,6 @@
 	vpcie3v3-supply = <&vcc3v3_pcie20>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pcie2x1l0_gpio>;
-	rockchip,skip-scan-in-resume;
 	rockchip,perst-inactive-ms = <500>;
 	status = "okay";
 };
@@ -709,7 +708,6 @@
 	reset-gpios = <&gpio3 RK_PD1 GPIO_ACTIVE_HIGH>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pcie2x1l1_gpio>;
-	rockchip,skip-scan-in-resume;
 	status = "okay";
 };
 
