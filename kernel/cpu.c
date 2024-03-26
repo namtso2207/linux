@@ -1667,6 +1667,12 @@ void bringup_nonboot_cpus(unsigned int setup_max_cpus)
 #ifdef CONFIG_PM_SLEEP_SMP
 static cpumask_var_t frozen_cpus;
 
+#include <linux/gpio.h>
+#include <linux/of_gpio.h>
+
+extern int get_wol_state(void);
+extern int wol_get_ctrl_gpio(void);
+
 int freeze_secondary_cpus(int primary)
 {
 	int cpu, error = 0;
@@ -1688,6 +1694,12 @@ int freeze_secondary_cpus(int primary)
 	cpumask_clear(frozen_cpus);
 
 	pr_info("Disabling non-boot CPUs ...\n");
+
+	if (!get_wol_state()) {
+            printk("wol_get_ctrl_gpio...0\n");
+            gpio_direction_output(wol_get_ctrl_gpio(), 0);
+    }
+	
 	for_each_online_cpu(cpu) {
 		if (cpu == primary)
 			continue;
@@ -1745,6 +1757,10 @@ void thaw_secondary_cpus(void)
 		goto out;
 
 	pr_info("Enabling non-boot CPUs ...\n");
+	if (!get_wol_state()) {
+		printk("rk_gmac_resume wol_get_ctrl_gpio...1\n");
+		gpio_direction_output(wol_get_ctrl_gpio(), 1);
+	}
 
 	arch_thaw_secondary_cpus_begin();
 
