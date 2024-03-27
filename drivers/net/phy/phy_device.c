@@ -2588,8 +2588,6 @@ int genphy_suspend(struct phy_device *phydev)
 		printk("genphy_suspend: config WOL...\n");
 		rtl8211f_suspend();
 		return 0;
-	} else {
-		gpio_direction_output(wol_get_ctrl_gpio(), 0);
 	}
 	return phy_set_bits(phydev, MII_BMCR, BMCR_PDOWN);
 }
@@ -2601,12 +2599,26 @@ int genphy_resume(struct phy_device *phydev)
 	printk("genphy_resume: wol_enable: %d\n", get_wol_state());
 	if (get_wol_state()) {
 		rtl8211f_resume();
-	} else {
-		gpio_direction_output(wol_get_ctrl_gpio(), 1);
 	}
 	return phy_clear_bits(phydev, MII_BMCR, BMCR_PDOWN);
 }
 EXPORT_SYMBOL(genphy_resume);
+
+void genphy_suspend_power_ctrl(void)
+{
+	if (!get_wol_state()) {
+		printk("wol_get_ctrl_gpio...0\n");
+		gpio_direction_output(wol_get_ctrl_gpio(), 0);
+	}
+}
+
+void genphy_resume_power_ctrl(void)
+{
+	if (!get_wol_state()) {
+		printk("rk_gmac_resume wol_get_ctrl_gpio...1\n");
+		gpio_direction_output(wol_get_ctrl_gpio(), 1);
+	}
+}
 
 int genphy_loopback(struct phy_device *phydev, bool enable)
 {

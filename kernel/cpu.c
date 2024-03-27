@@ -1697,6 +1697,7 @@ void bringup_nonboot_cpus(unsigned int setup_max_cpus)
 #ifdef CONFIG_PM_SLEEP_SMP
 static cpumask_var_t frozen_cpus;
 
+void genphy_suspend_power_ctrl(void);
 int freeze_secondary_cpus(int primary)
 {
 	int cpu, error = 0;
@@ -1718,6 +1719,9 @@ int freeze_secondary_cpus(int primary)
 	cpumask_clear(frozen_cpus);
 
 	pr_info("Disabling non-boot CPUs ...\n");
+
+	genphy_suspend_power_ctrl();
+
 	for_each_online_cpu(cpu) {
 		if (cpu == primary)
 			continue;
@@ -1763,6 +1767,7 @@ void __weak arch_thaw_secondary_cpus_end(void)
 {
 }
 
+void genphy_resume_power_ctrl(void);
 void thaw_secondary_cpus(void)
 {
 	int cpu, error;
@@ -1775,6 +1780,8 @@ void thaw_secondary_cpus(void)
 		goto out;
 
 	pr_info("Enabling non-boot CPUs ...\n");
+
+	genphy_resume_power_ctrl();
 
 	arch_thaw_secondary_cpus_begin();
 
