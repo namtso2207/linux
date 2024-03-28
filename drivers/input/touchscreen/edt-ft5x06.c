@@ -996,6 +996,7 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 	unsigned long irq_flags;
 	int error;
 	char fw_version[EDT_NAME_LEN];
+	static bool first_flag = 0;
 
 	dev_info(&client->dev, "probing for EDT FT5x06 I2C\n");
 
@@ -1088,6 +1089,14 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 	input->name = tsdata->name;
 	input->id.bustype = BUS_I2C;
 	input->dev.parent = &client->dev;
+	if(first_flag){
+		input->phys = "ft5x06-2/input0";
+		input->name = "ft5x06-2";
+	} else {
+		first_flag = 1;
+		input->phys = "ft5x06-1/input0";
+		input->name = "ft5x06-1";
+	}
 
 #if TP_CHANGE_X2Y
 	input_set_abs_params(input, ABS_MT_POSITION_Y,
