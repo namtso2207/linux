@@ -164,6 +164,33 @@ void HexToAscii(unsigned char *pHex, unsigned char *pAscii, int nLen)
     }
 }
 
+void HexToAscii_sn(unsigned char *pHex, unsigned char *pAscii, int nLen)
+{
+    unsigned char Nibble[2];
+    unsigned int i,j;
+    for (i = 0; i < nLen; i++){
+        Nibble[0] = (pHex[i] & 0xF0) >> 4;
+        Nibble[1] = pHex[i] & 0x0F;
+        for (j = 0; j < 2; j++){
+            if (Nibble[j] < 10){
+                Nibble[j] += 0x30;
+            }
+            else{
+                if (Nibble[j] < 16)
+                    Nibble[j] = Nibble[j] - 10 + 'A';
+            }
+			if((nLen-1) == i && 0 == j)//去掉最后的高位
+			{
+			}else{
+				*pAscii++ = Nibble[j];
+			}
+            if(i==(nLen-1) && j==1){
+               *pAscii = '\0';
+            }
+        }
+    }
+}
+
 void register_pcie_eth_ctrl_interface(void (*callback)(int))
 {
 	g_mcu_data->pcie_net_ctrl = callback;
@@ -855,28 +882,28 @@ static ssize_t show_usid_addr(struct class *cls,
 				struct class_attribute *attr, char *buf)
 {
 	int ret;
-	unsigned char addr_usid[15]={0};
-	unsigned char addr[7]={0};
+	unsigned char usid[17]={0};
+	unsigned char addr[9]={0};
 	int i;
 
-	for(i=0; i<=6; i++){
+	for(i=0; i<=8; i++){
 		ret = mcu_i2c_read_regs(g_mcu_data->client, MCU_USID+i, &addr[i], 1);
 		if (ret < 0) 
 			printk("%s: usid address failed (%d)",__func__, ret);
 		//printk("%s: mac address: %02x\n",__func__, addr[i]);
 	}
-	HexToAscii(addr,addr_usid,7);
-	printk("usid address (%s)\n", addr_usid);
+	HexToAscii_sn(addr,usid,9);
+	printk("usid address (%s)\n", usid);
 
-	return sprintf(buf, "%s\n", addr_usid);
+	return sprintf(buf, "%s\n", usid);
 }	
 
 static ssize_t store_usid_addr(struct class *cls, struct class_attribute *attr,
 				const char *buf, size_t count)
 {
 	int ret;
-	char addr_usid[15]={0};
-	unsigned char addr[7]={0};
+	char addr_usid[18]={0};
+	unsigned char addr[9]={0};
 	int outlen = 0;
 	int i;
 	//81 1
@@ -891,10 +918,10 @@ static ssize_t store_usid_addr(struct class *cls, struct class_attribute *attr,
 		return ret;
 	}
 	
-	printk("usid address: %02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
+	printk("usid address: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%01x\n",
 			addr[0], addr[1], addr[2],
-			addr[3], addr[4], addr[5], addr[6]);
-	for(i=0; i<=6; i++){
+			addr[3], addr[4], addr[5], addr[6], addr[7], addr[8]);
+	for(i=0; i<=8; i++){
 		ret = mcu_i2c_write_regs(g_mcu_data->client, MCU_USID+i, &addr[i], 1);
 		if (ret < 0){
 			printk("%s: usid address failed (%d)\n",__func__, ret);
