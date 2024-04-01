@@ -857,7 +857,12 @@
 	status = "okay";
 };
 
+/* dp0_sound */
 &spdif_tx2 {
+	status = "okay";
+};
+/* dp1_sound */
+&spdif_tx5 {
 	status = "okay";
 };
 
