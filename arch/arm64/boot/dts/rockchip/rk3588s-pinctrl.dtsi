@@ -2051,7 +2051,7 @@
 				/* pmic_sleep3 */
 				<0 RK_PC1 1 &pcfg_pull_none>,
 				/* pmic_sleep4 */
-				<0 RK_PC2 1 &pcfg_pull_none>,
+				//<0 RK_PC2 1 &pcfg_pull_none>,
 				/* pmic_sleep5 */
 				<0 RK_PC3 1 &pcfg_pull_none>,
 				/* pmic_sleep6 */

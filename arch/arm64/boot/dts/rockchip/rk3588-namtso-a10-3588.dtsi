@@ -262,19 +262,19 @@
 
 	};
 
-	vcc_3v3_ext: vcc-3v3-ext {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc_3v3_ext";
-		regulator-boot-on;
-		regulator-always-on;
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		enable-active-high;
-		gpio = <&gpio0 RK_PC2 GPIO_ACTIVE_HIGH>;
-		vin-supply = <&vcc5v0_sys>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&vcc_3v3_ext_en>;
-	};
+	// vcc_3v3_ext: vcc-3v3-ext {
+	// 	compatible = "regulator-fixed";
+	// 	regulator-name = "vcc_3v3_ext";
+	// 	regulator-boot-on;
+	// 	regulator-always-on;
+	// 	regulator-min-microvolt = <3300000>;
+	// 	regulator-max-microvolt = <3300000>;
+	// 	enable-active-high;
+	// 	gpio = <&gpio0 RK_PC2 GPIO_ACTIVE_HIGH>;
+	// 	vin-supply = <&vcc5v0_sys>;
+	// 	pinctrl-names = "default";
+	// 	pinctrl-0 = <&vcc_3v3_ext_en>;
+	// };
 
 	vcc_1v1_nldo_s3: vcc-1v1-nldo-s3 {
         compatible = "regulator-fixed";

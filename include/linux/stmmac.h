@@ -14,6 +14,8 @@
 
 #include <linux/platform_device.h>
 #include <linux/phy.h>
+#include <linux/wakelock.h>
+
 
 #define MTL_MAX_RX_QUEUES	8
 #define MTL_MAX_TX_QUEUES	8
@@ -210,5 +212,11 @@ struct plat_stmmacenet_data {
 	u8 vlan_fail_q;
 	unsigned int eee_usecs_rate;
 	bool sph_disable;
+	int wolirq_io;
+	int wolirq_io_level;
+	int wol_irq;
+	struct wake_lock wol_wake_lock;
+	int wol_suspended;
+	int wol_suspend_count;
 };
 #endif

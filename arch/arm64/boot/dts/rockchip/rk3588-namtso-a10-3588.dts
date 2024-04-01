@@ -159,6 +159,9 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		vin-supply = <&vcc_3v3_s3>;
+		regulator-state-mem {
+			regulator-on-in-suspend;
+		};
 	};
 
 	vcc_sd: vcc-sd {
@@ -212,9 +215,9 @@
 		pinctrl-names = "default", "rts_gpio";
 		pinctrl-0 = <&uart8m1_rtsn>, <&bt_reset_gpio>, <&bt_wake_gpio>, <&bt_irq_gpio>;
 		pinctrl-1 = <&uart8_gpios>;
-		BT,reset_gpio    = <&gpio3 RK_PA6 GPIO_ACTIVE_HIGH>;
-		BT,wake_gpio     = <&gpio3 RK_PA1 GPIO_ACTIVE_HIGH>;
-		BT,wake_host_irq = <&gpio3 RK_PA0 GPIO_ACTIVE_HIGH>;
+		BT,reset_gpio    = <&gpio0 RK_PC6 GPIO_ACTIVE_HIGH>;
+		BT,wake_gpio     = <&gpio0 RK_PC5 GPIO_ACTIVE_HIGH>;
+		BT,wake_host_irq = <&gpio0 RK_PA0 GPIO_ACTIVE_HIGH>;
 		status = "okay";
 	};
 
@@ -243,7 +246,7 @@
 };
 
 &vcc_3v3_s0 {
-	/delete-property/ regulator-state-mem;
+	///delete-property/ regulator-state-mem;
 	regulator-state-mem {
 		regulator-on-in-suspend;
 		regulator-suspend-microvolt = <3300000>;
@@ -382,17 +385,21 @@
 	phy-mode = "rgmii-rxid";
 	clock_in_out = "output";
 
-	snps,reset-gpio = <&gpio3 RK_PB7 GPIO_ACTIVE_LOW>;
+	snps,reset-gpio = <&gpio3 RK_PB7 GPIO_ACTIVE_HIGH>;
 	snps,reset-active-low;
 	/* Reset time is 20ms, 100ms for rtl8211f */
 	snps,reset-delays-us = <0 20000 100000>;
+
+	wolirq-gpio = <&gpio0 RK_PC2 GPIO_ACTIVE_LOW>;
+	wolctrl-gpio = <&gpio4 RK_PC4 GPIO_ACTIVE_LOW>;
 
 	pinctrl-names = "default";
 	pinctrl-0 = <&gmac1_miim
 		     &gmac1_tx_bus2
 		     &gmac1_rx_bus2
 		     &gmac1_rgmii_clk
-		     &gmac1_rgmii_bus>;
+		     &gmac1_rgmii_bus
+			 &wol_gpio>;
 
 	tx_delay = <0x39>;
 	/* rx_delay = <0x3f>; */
@@ -523,6 +530,7 @@
 			regulator-off-in-suspend;
 		};
 	};
+
 
 	usbc0: fusb302@22 {
 		compatible = "fcs,fusb302";
@@ -758,7 +766,7 @@
 		};
 
 		bt_reset_gpio: bt-reset-gpio {
-			rockchip,pins = <3 RK_PA6 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <0 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
 		bt_wake_gpio: bt-wake-gpio {
@@ -815,6 +823,12 @@
 		};
 		ext_led_gpio: ext-led-gpio {
 			rockchip,pins = <0 RK_PD0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	wol {
+		wol_gpio: wol-gpio {
+			rockchip,pins = <0 RK_PC2 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 	};
 };

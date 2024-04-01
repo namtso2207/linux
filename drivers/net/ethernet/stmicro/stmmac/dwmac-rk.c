@@ -2846,9 +2846,6 @@ static int rk_gmac_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_PM_SLEEP
-void rtl8211f_suspend(void);
-void rtl8211f_resume(void);
-void rtl8211f_shutdown(void);
 static int rk_gmac_suspend(struct device *dev)
 {
 	int ret = -1;
@@ -2861,7 +2858,6 @@ static int rk_gmac_suspend(struct device *dev)
 		bsp_priv->suspended = true;
 	}
 
-	rtl8211f_resume();
 	return ret;
 }
 
@@ -2875,13 +2871,12 @@ static int rk_gmac_resume(struct device *dev)
 		bsp_priv->suspended = false;
 	}
 
-	rtl8211f_resume();
 	return stmmac_resume(dev);
 }
 #endif /* CONFIG_PM_SLEEP */
 
 #ifdef CONFIG_PM
-void realtek_setup_wol(int enable, bool is_shutdown);
+void rtl8211f_shutdown(void);
 static void stmmac_pltfr_shutdown(struct platform_device *dev)
 {
 	rtl8211f_shutdown();

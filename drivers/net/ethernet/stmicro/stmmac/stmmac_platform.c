@@ -16,6 +16,8 @@
 #include <linux/of_net.h>
 #include <linux/of_device.h>
 #include <linux/of_mdio.h>
+#include <linux/of_gpio.h>
+
 
 #include "stmmac.h"
 #include "stmmac_platform.h"
@@ -394,6 +396,13 @@ static int stmmac_of_get_mac_mode(struct device_node *np)
  * this function is to read the driver parameters from device-tree and
  * set some private fields that will be used by the main at runtime.
  */
+static int wolctrl_io = -1;
+int wol_get_ctrl_gpio(void)
+{
+    return wolctrl_io;
+}
+EXPORT_SYMBOL(wol_get_ctrl_gpio);
+
 struct plat_stmmacenet_data *
 stmmac_probe_config_dt(struct platform_device *pdev, const char **mac)
 {
@@ -402,6 +411,7 @@ stmmac_probe_config_dt(struct platform_device *pdev, const char **mac)
 	struct stmmac_dma_cfg *dma_cfg;
 	int phy_mode;
 	int rc;
+	enum of_gpio_flags flags;
 
 	plat = devm_kzalloc(&pdev->dev, sizeof(*plat), GFP_KERNEL);
 	if (!plat)
@@ -414,6 +424,9 @@ stmmac_probe_config_dt(struct platform_device *pdev, const char **mac)
 
 		*mac = NULL;
 	}
+
+	plat->wolirq_io = of_get_named_gpio_flags(np, "wolirq-gpio", 0, &flags);
+	wolctrl_io = of_get_named_gpio_flags(np, "wolctrl-gpio", 0, &flags);
 
 	phy_mode = device_get_phy_mode(&pdev->dev);
 	if (phy_mode < 0)
