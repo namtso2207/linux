@@ -606,10 +606,6 @@
 	};
 };
 
-&i2c6 {
-	status = "okay";
-};
-
 &i2c7 {
 	status = "okay";
 
