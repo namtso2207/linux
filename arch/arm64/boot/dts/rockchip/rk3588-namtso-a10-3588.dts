@@ -167,6 +167,21 @@
 		startup-delay-us = <5000>;
 	};
 
+	vcc3v3_pcie30: vcc3v3-pcie30 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc3v3_pcie30";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpios = <&gpio2 RK_PC5 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&vcc3vc_clken_gpio>;
+		enable-active-high;
+		regulator-boot-on;
+		regulator-always-on;
+		startup-delay-us = <5000>;
+		vin-supply = <&vcc4v0_sys>;
+	};
+
 	wireless_bluetooth: wireless-bluetooth {
 		compatible = "bluetooth-platdata";
 		clocks = <&pt7c4363>;
@@ -697,6 +712,19 @@
 	status = "okay";
 };
 
+&pcie30phy {
+	rockchip,pcie30-phymode = <PHY_MODE_PCIE_AGGREGATION>;
+	status = "okay";
+};
+
+&pcie3x4 {
+	reset-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_HIGH>;
+	vpcie3v3-supply = <&vcc3v3_pcie30>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie3x4_gpio>;
+	status = "okay";
+};
+
 &pinctrl {
 	dp {
 		dp1_hpd: dp1-hpd {
@@ -790,6 +818,13 @@
 
 		pcie2x1l1_gpio: pcie2x1l1-gpio {
 			rockchip,pins = <1 RK_PB4 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		pcie3x4_gpio: pcie3x4-gpio {
+			rockchip,pins = <4 RK_PB6 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+
+		vcc3vc_clken_gpio: vcc3vc-clken-gpio {
+			rockchip,pins = <2 RK_PC5 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 	};
 	vcc_5v0 {
