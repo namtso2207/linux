@@ -5299,6 +5299,7 @@ EXPORT_SYMBOL_GPL(stmmac_dvr_remove);
  * by the platform driver to stop the network queue, release the resources,
  * program the PMT register (for WoL), clean and release driver resources.
  */
+void realtek_setup_wol(int enable, bool is_shutdown);
 int stmmac_suspend(struct device *dev)
 {
 	struct net_device *ndev = dev_get_drvdata(dev);

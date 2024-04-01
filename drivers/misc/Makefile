@@ -3,6 +3,8 @@
 # Makefile for misc devices that really don't fit anywhere else.
 #
 
+KBUILD_CFLAGS += -Wno-unused-function
+
 obj-y				+= rk628/
 obj-$(CONFIG_RK803)		+= rk803.o
 obj-y				+= rockchip/
@@ -64,4 +66,5 @@ obj-$(CONFIG_HISI_HIKEY_USB)	+= hisi_hikey_usb.o
 obj-$(CONFIG_UID_SYS_STATS)	+= uid_sys_stats.o
 
 obj-$(CONFIG_WK2204_UART_HUB) += wk2xxx_i2c.o
+obj-$(CONFIG_NAMTSO_MCU) += namtso-mcu.o
 

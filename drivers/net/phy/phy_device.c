@@ -2577,8 +2577,13 @@ int genphy_write_mmd_unsupported(struct phy_device *phdev, int devnum,
 }
 EXPORT_SYMBOL(genphy_write_mmd_unsupported);
 
+int get_wol_state(void);
 int genphy_suspend(struct phy_device *phydev)
 {
+	if (get_wol_state())
+	{
+		return 0;
+	}
 	return phy_set_bits(phydev, MII_BMCR, BMCR_PDOWN);
 }
 EXPORT_SYMBOL(genphy_suspend);
