@@ -847,6 +847,16 @@
 	status = "okay";
 };
 
+/* hdmi0_sound */
+&i2s5_8ch {
+	status = "okay";
+};
+
+/* hdmi1_sound */
+&i2s6_8ch {
+	status = "okay";
+};
+
 &spdif_tx2 {
 	status = "okay";
 };
