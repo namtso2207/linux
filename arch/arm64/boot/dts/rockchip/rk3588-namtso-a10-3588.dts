@@ -380,6 +380,27 @@
 	assigned-clock-rates = <800000000>;
 };
 
+&hdmi0 {
+	status = "okay";
+};
+
+&hdmi0_in_vp1 {
+	status = "okay";
+};
+
+&hdmi0_sound {
+	status = "okay";
+};
+
+&hdptxphy_hdmi0 {
+	status = "okay";
+};
+
+&route_hdmi0 {
+	status = "okay";
+	connect = <&vp1_out_hdmi0>;
+};
+
 &hdmi1 {
 	enable-gpios = <&gpio4 RK_PB1 GPIO_ACTIVE_HIGH>;
 	status = "okay";
