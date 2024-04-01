@@ -483,6 +483,17 @@
 
 &i2c2 {
 	status = "okay";
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c2m4_xfer>;
+
+	wk2204: wk2204@10 {
+		compatible = "wkmic,wk2168_i2c";
+		reg = <0x10>;
+		irq_gpio = <&gpio1 RK_PA7 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&wk2204_irq_gpio>;
+	};
 };
 
 &i2c6 {
@@ -654,6 +665,12 @@
 	vcc_ext {
 		vcc_3v3_ext_en: vcc-3v3-ext-en {
 			rockchip,pins = <0 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	wk2204 {
+		wk2204_irq_gpio: wk2204-irq-gpio {
+			rockchip,pins = <1 RK_PA7 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 };
