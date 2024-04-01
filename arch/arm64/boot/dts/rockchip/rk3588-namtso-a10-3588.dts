@@ -596,6 +596,29 @@
 	};
 };
 
+&i2c3 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c3m0_xfer>;
+
+	invn_icm_i2c: icm42688@68 {
+		status = "okay";
+		compatible = "invensense,icm43600";
+		reg = <0x68>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <RK_PD5 GPIO_ACTIVE_HIGH>;
+		axis_map_x = <1>;
+		axis_map_y = <0>;
+		axis_map_z = <2>;
+		negate_x = <1>;
+		negate_y = <0>;
+		negate_z = <0>;
+		inven,secondary_type = "none";
+		inven,aux_type = "none";
+		inven,read_only_slave_type = "none";
+	};
+};
+
 &i2c7 {
 	status = "okay";
 
