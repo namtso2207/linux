@@ -84,6 +84,7 @@ static void rtl8211f_config_wol(struct phy_device *phydev, int enable);
 static void rtl8211f_config_speed(struct phy_device *phydev, int mode);
 
 static int wol_enable = 0;
+static int wol_is_suspend = 0;
 static u8 mac_addr[] = {0xCE, 0x07, 0x00, 0x5D, 0x5C, 0x2C};
 static struct phy_device * g_phydev = NULL;
 
@@ -132,17 +133,19 @@ void rtl8211f_suspend(void) {
 		rtl8211f_config_wol(g_phydev, 1);
 		rtl8211f_config_wakeup_frame_mask(g_phydev);
 		rtl8211f_config_pad_isolation(g_phydev, 1);
+		wol_is_suspend = 1;
 	}
 }
 EXPORT_SYMBOL(rtl8211f_suspend);
 
 
 void rtl8211f_resume(void) {
-	if (wol_enable && g_phydev) {
+	if (wol_enable && g_phydev && wol_is_suspend) {
 		printk("rtl8211f_resume...\n");
 		rtl8211f_config_speed(g_phydev, 1);
 		rtl8211f_config_wol(g_phydev, 0);
 		rtl8211f_config_pad_isolation(g_phydev, 0);
+		wol_is_suspend = 0;
 	}
 }
 EXPORT_SYMBOL(rtl8211f_resume);
