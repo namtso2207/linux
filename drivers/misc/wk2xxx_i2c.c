@@ -1569,7 +1569,19 @@ static int rockchip_i2c_parse_dt(struct device *dev)
 	return irq;
 }
 
+#define UART_RS485_MODE     (3)
+static int wk2xxx_set_mode(int index_tty)
+{
+    unsigned char read_reg = 0;
+    struct wk2xxx_port * s = &wk2xxxs[index_tty];
 
+    wk2xxx_write_slave_reg(s->wk2xxx_i2c_client,s->port.iobase,WK2XXX_SPAGE,WK2XXX_PAGE0);//set register in page0
+    wk2xxx_read_slave_reg(s->wk2xxx_i2c_client,s->port.iobase,WK2XXX_RS485,&read_reg);
+    read_reg |= 1 << 6;
+    wk2xxx_write_slave_reg(s->wk2xxx_i2c_client,s->port.iobase,WK2XXX_RS485, read_reg);
+
+    return 0;
+}
 
 static int wk2xxx_probe(struct i2c_client *client,const struct i2c_device_id *dev_id)
 {
@@ -1644,6 +1656,8 @@ static int wk2xxx_probe(struct i2c_client *client,const struct i2c_device_id *de
     	}
         printk(KERN_ALERT "uart_add_one_port status= 0x%d\n",status);
     	mutex_unlock(&wk2xxxs_lock);
+
+        wk2xxx_set_mode(UART_RS485_MODE);
 
     	return status;
 }
