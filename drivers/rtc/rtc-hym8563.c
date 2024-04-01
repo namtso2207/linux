@@ -505,11 +505,14 @@ static int hym8563_suspend(struct device *dev)
 	struct i2c_client *client = to_i2c_client(dev);
 	int ret;
 
-	if (device_may_wakeup(dev)) {
-		ret = enable_irq_wake(client->irq);
-		if (ret) {
-			dev_err(dev, "enable_irq_wake failed, %d\n", ret);
-			return ret;
+	if (client->irq > 0)
+	{
+		if (device_may_wakeup(dev)) {
+			ret = enable_irq_wake(client->irq);
+			if (ret) {
+				dev_err(dev, "enable_irq_wake failed, %d\n", ret);
+				return ret;
+			}
 		}
 	}
 
@@ -520,9 +523,11 @@ static int hym8563_resume(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 
-	if (device_may_wakeup(dev))
-		disable_irq_wake(client->irq);
-
+	if (client->irq > 0)
+	{
+		if (device_may_wakeup(dev))
+			disable_irq_wake(client->irq);
+	}
 	return 0;
 }
 #endif
