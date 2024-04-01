@@ -878,6 +878,13 @@
 	};
 };
 
+&spi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi1m0_cs0 &spi1m0_pins>;
+	num-cs = <1>;
+	status = "okay";
+};
+
 &pwm0 {
 	pinctrl-0 = <&pwm0m1_pins>;
 	status = "okay";
