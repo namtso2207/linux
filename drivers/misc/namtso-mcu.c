@@ -22,9 +22,10 @@
 #include <linux/of_address.h>
 
 /* Device registers */
-#define MCU_BOOT_EN_WOL_REG		  0x21
-#define MCU_PWR_OFF_CMD_REG       0x80
-#define MCU_SHUTDOWN_NORMAL_REG   0x2c
+#define MCU_BOOT_EN_WOL_REG             0x21
+#define MCU_BOOT_INIT_WOL		   		0x85
+#define MCU_PWR_OFF_CMD_REG       		0x80
+#define MCU_SHUTDOWN_NORMAL_REG   		0x2c
 
 /*Fan device*/
 #define MCU_CMD_FAN_STATUS_CTRL_REGv2   0x8A
@@ -165,6 +166,11 @@ static int is_mcu_fan_control_supported(void)
 		return 1;
 	}
 	return 0;
+}
+int init_wol_reg(void)
+{
+	unsigned char status = 1;
+	return mcu_i2c_write_regs(g_mcu_data->client, MCU_BOOT_INIT_WOL, &status, 1);
 }
 static bool is_mcu_wol_supported(void)
 {
@@ -641,6 +647,7 @@ static int mcu_parse_dt(struct device *dev)
 
 	return ret;
 }
+
 
 static int mcu_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
