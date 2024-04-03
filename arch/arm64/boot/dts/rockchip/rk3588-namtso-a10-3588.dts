@@ -276,7 +276,9 @@
 	status = "okay";
 };
 
-
+&dp1_sound{
+	status = "okay";
+};
 
 &hdmi1 {
 	enable-gpios = <&gpio4 RK_PB1 GPIO_ACTIVE_HIGH>;
