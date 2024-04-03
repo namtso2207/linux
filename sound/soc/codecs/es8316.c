@@ -703,7 +703,7 @@ static int es8316_pcm_startup(struct snd_pcm_substream *substream,
 			    ES8316_CLKMGR_DAC_MCLK_MASK,
 			    ES8316_CLKMGR_MCLK_DIV_NML |
 			    ES8316_CLKMGR_DAC_MCLK_EN);
-	es8316->pwr_count++;
+	//es8316->pwr_count++;
 
 	if (playback) {
 		snd_soc_component_write(component, ES8316_SYS_LP1_REG0E, 0x3F);
@@ -745,6 +745,7 @@ static void es8316_pcm_shutdown(struct snd_pcm_substream *substream,
 	struct snd_soc_component *component = dai->component;
 	struct es8316_priv *es8316 = snd_soc_component_get_drvdata(component);
 	bool playback = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
+return;
 
 	if (playback) {
 		snd_soc_component_write(component, ES8316_CPHP_OUTEN_REG17, 0x00);

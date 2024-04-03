@@ -239,7 +239,7 @@ static irqreturn_t edt_ft5x06_ts_isr(int irq, void *dev_id)
 		goto out;
 	}
     /*For externel touch device to wake the device*/
-	printk("hlm gtp_is_suspend=%d\n", tsdata->gtp_is_suspend);
+	//printk("hlm gtp_is_suspend=%d\n", tsdata->gtp_is_suspend);
 	if(ts_hlm->gtp_is_suspend == 1){
 		ts_hlm->gtp_is_suspend = 0;
 		wake_system();
