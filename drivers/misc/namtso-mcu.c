@@ -26,6 +26,7 @@
 #define MCU_LAN_MAC_SWITCH  0x2C
 #define MCU_LAN_MAC_ID  0x0
 #define MCU_USID        0x12
+#define MCU_FLASH_BUSY  0x8B
 /* Device registers */
 #define MCU_BOOT_EN_WOL_REG		  0x21
 #define MCU_PCIE_WOL_EN_REG				0x26
@@ -119,6 +120,7 @@ struct mcu_data *g_mcu_data;
 int ageing_test_flag = 0;
 int icm43600 = 0;//0:NG,1:OK
 int key_test_flag = 0;
+static store_mac_addr_flag = 0;
 
 int StringToHex(char *str, unsigned char *out, unsigned int *outlen)
 {
@@ -339,6 +341,8 @@ static int is_mcu_mculed_control_supported(void)
 
 static void mcu_fan_level_set(struct mcu_fan_data *fan_data, int level)
 {
+	if(store_mac_addr_flag)
+		return;
     if (is_mcu_fan_control_supported()) {
         int ret;
         u8 data = 0;
@@ -829,14 +833,16 @@ static ssize_t store_wol_enable_eth1(struct class *cls, struct class_attribute *
 	return count;
 }
 
+static char addr_Ascii[13]={0};
 static ssize_t show_mac_addr(struct class *cls,
 				struct class_attribute *attr, char *buf)
 {
 	int ret;
-	unsigned char addr_Ascii[13]={0};
+	//unsigned char addr_Ascii[13]={0};
 	unsigned char addr[6]={0};
 	int i;
-
+	if(store_mac_addr_flag)
+		return sprintf(buf, "%s\n", addr_Ascii);
 	for(i=0; i<=5; i++){
 		ret = mcu_i2c_read_regs(g_mcu_data->client, MCU_LAN_MAC_ID+i, &addr[i], 1);
 		if (ret < 0)
@@ -854,30 +860,54 @@ static ssize_t store_mac_addr(struct class *cls, struct class_attribute *attr,
 				const char *buf, size_t count)
 {
 	int ret;
-	char addr_Ascii[13]={0};
+	u8 reg[2] = {'\0'};
+
 	unsigned char addr[6]={0};
 	int outlen = 0;
 	int i;
 
+	store_mac_addr_flag = 1;
 	sscanf(buf,"%s",addr_Ascii);
 
 	StringToHex(addr_Ascii,addr,&outlen);
 	printk("store_mac_addr: %02x:%02x:%02x:%02x:%02x:%02x\n",
 			addr[0], addr[1], addr[2],
 			addr[3], addr[4], addr[5]);
+
+	for(i=0; i<=2; i++){
+		mcu_i2c_read_regs(g_mcu_data->client, MCU_FLASH_BUSY, reg, 1);
+		if((int)reg[0] & 0x01){
+			msleep(100);
+			printk("%s:%d mac address failed(num=%d) (mcu flash busy)\n",__func__, __LINE__,i);
+		}else{
+			break;
+		}
+	}
+
 	for(i=0; i<=5; i++){
 		ret = mcu_i2c_write_regs(g_mcu_data->client, MCU_LAN_MAC_ID+i, &addr[i], 1);
 		if (ret < 0)
 			printk("%s: mac address failed (%d)\n",__func__, ret);
 	}
-	msleep(10);
+
+	/*for(i=0; i<=2; i++){
+		mcu_i2c_read_regs(g_mcu_data->client, MCU_FLASH_BUSY, reg, 1);
+		if((int)reg[0] & 0x01){
+			msleep(100);
+			printk("%s:%d mac address failed(num=%d) (mcu flash busy)\n",__func__, __LINE__,i);
+		}else{
+			break;
+		}
+	}
+	msleep(66);
 	addr[0] = 1;
 	ret = mcu_i2c_write_regs(g_mcu_data->client, MCU_LAN_MAC_SWITCH, addr, 1);
 	if (ret < 0)
-		printk("%s: mac address failed (%d)\n",__func__, ret);
+		printk("%s: mac address failed (%d)\n",__func__, ret);*/
 	return count;
 }
 
+static char addr_usid[18]={0};
 static ssize_t show_usid_addr(struct class *cls,
 				struct class_attribute *attr, char *buf)
 {
@@ -885,7 +915,8 @@ static ssize_t show_usid_addr(struct class *cls,
 	unsigned char usid[17]={0};
 	unsigned char addr[9]={0};
 	int i;
-
+	if(store_mac_addr_flag)
+		return sprintf(buf, "%s\n", addr_usid);
 	for(i=0; i<=8; i++){
 		ret = mcu_i2c_read_regs(g_mcu_data->client, MCU_USID+i, &addr[i], 1);
 		if (ret < 0) 
@@ -902,7 +933,8 @@ static ssize_t store_usid_addr(struct class *cls, struct class_attribute *attr,
 				const char *buf, size_t count)
 {
 	int ret;
-	char addr_usid[18]={0};
+	u8 reg[2] = {'\0'};
+
 	unsigned char addr[9]={0};
 	int outlen = 0;
 	int i;
@@ -921,6 +953,17 @@ static ssize_t store_usid_addr(struct class *cls, struct class_attribute *attr,
 	printk("usid address: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%01x\n",
 			addr[0], addr[1], addr[2],
 			addr[3], addr[4], addr[5], addr[6], addr[7], addr[8]);
+
+	for(i=0; i<=2; i++){
+		mcu_i2c_read_regs(g_mcu_data->client, MCU_FLASH_BUSY, reg, 1);
+		if((int)reg[0] & 0x01){
+			msleep(100);
+			printk("%s:%d mac address failed(num=%d) (mcu flash busy)\n",__func__, __LINE__,i);
+		}else{
+			break;
+		}
+	}
+
 	for(i=0; i<=8; i++){
 		ret = mcu_i2c_write_regs(g_mcu_data->client, MCU_USID+i, &addr[i], 1);
 		if (ret < 0){
@@ -936,7 +979,8 @@ static ssize_t show_ageing_test(struct class *cls,
 {
 	int ret;
 	unsigned char addr[1]={0};
-
+	if(store_mac_addr_flag)
+		return 0;
 	ret = mcu_i2c_read_regs(g_mcu_data->client, MCU_AGEING_TEST, addr, 1);
 	if (ret < 0)
 		printk("%s: AGEING_TEST failed (%d)",__func__, ret);
