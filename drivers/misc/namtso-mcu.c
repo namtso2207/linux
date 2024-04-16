@@ -1027,7 +1027,7 @@ static ssize_t show_wol_enable_eth1(struct class *cls,
 {
 	int enable;
 
-	enable = g_mcu_data->pcie_eth_wol_enable & 0x01;
+	enable = g_mcu_data->pcie_eth_wol_enable;
 	return sprintf(buf, "%d\n", enable);
 }
 
@@ -1174,8 +1174,8 @@ static int mcu_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	ret = mcu_i2c_read_regs(client, MCU_PCIE_WOL_EN_REG, reg, 1);
 	if (ret < 0)
 		pr_err("mcu_i2c_read_regs failed: [%d]\n", MCU_PCIE_WOL_EN_REG);
-	g_mcu_data->pcie_eth_wol_enable = (int)reg[0] & 0x01;
-	if (g_mcu_data->pcie_eth_wol_enable) {
+	g_mcu_data->pcie_eth_wol_enable = (int)reg[0];
+	if (1 == g_mcu_data->pcie_eth_wol_enable) { //底板WOL功能设置。0:关闭WOL，1:开启WOL唤醒开机，2: 开启WOL唤醒开机/复位但底板未连接(此数据只读)，3:开启WOL复位
 		mcu_enable_wol_eth1(g_mcu_data->pcie_eth_wol_enable);
 	}
 	g_mcu_data->fan_data.mode = MCU_FAN_MODE_AUTO;
