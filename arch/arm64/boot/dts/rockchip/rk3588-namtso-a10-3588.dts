@@ -631,14 +631,14 @@
 		#sound-dai-cells = <0>;
 		compatible = "everest,es8316";
 		reg = <0x10>;
-		clocks = <&cru I2S0_8CH_MCLKOUT>;
+		clocks = <&mclkout_i2s0>;
 		clock-names = "mclk";
 		assigned-clocks = <&mclkout_i2s0>;
 		assigned-clock-rates = <12288000>;
 		pinctrl-names = "default","hp_det","spk_con";
 		pinctrl-0 = <&i2s0_mclk>,<&hp_det>;//<&spk_con>;
 		//spk-con-gpio = <&gpio1 RK_PD0 GPIO_ACTIVE_HIGH>;
-		hp-det-gpio = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;
+		hp-det-gpio = <&gpio1 RK_PC4 GPIO_ACTIVE_LOW>;
 	};
 };
 
