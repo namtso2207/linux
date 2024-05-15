@@ -169,6 +169,12 @@
 		vin-supply = <&vcc4v0_sys>;
 	};
 
+	mcp251x_clk: mcp251x-clk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <8000000>;
+	};
+
 	link_io_pwren: link-io-pwren {
 		compatible = "regulator-fixed";
 		regulator-name = "link_io_pwren";
@@ -913,6 +919,17 @@
 	pinctrl-0 = <&spi3m0_cs0 &spi3m0_pins>;
 	num-cs = <1>;
 	status = "okay";
+
+	spi_can@0 {
+		compatible =  "microchip,mcp2515";
+		reg = <0>;
+		clocks = <&mcp251x_clk>;
+		spi-max-frequency = <8000000>;
+		status = "okay";
+		interrupt-parent = <&gpio3>;
+		interrupts = <RK_PD0 IRQ_TYPE_EDGE_FALLING>;
+	};
+
 };
 
 &can1 {
