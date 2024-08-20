@@ -5077,8 +5077,8 @@ static int stmmac_dvr_mac_addr_overlay(struct stmmac_priv * priv)
 	if (mac_content_len != strlen(mac_buf)) {
 		return -1;
 	}
-	sscanf(mac_buf, "%x:%x:%x:%x:%x:%x", &mac_addr[0], &mac_addr[1], &mac_addr[2], &mac_addr[3], &mac_addr[4], &mac_addr[5]);
-	dev_info(priv->device, "stmmac_addr: %x:%x:%x:%x:%x:%x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+	sscanf(mac_buf, "%02x:%02x:%02x:%02x:%02x:%02x", &mac_addr[0], &mac_addr[1], &mac_addr[2], &mac_addr[3], &mac_addr[4], &mac_addr[5]);
+	dev_info(priv->device, "stmmac_addr: %02x:%02x:%02x:%02x:%02x:%02x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 	for (i=0; i<sizeof(mac_addr)/sizeof(mac_addr[0]); i++) {
 		priv->dev->dev_addr[i] = (unsigned char)mac_addr[i];
 	}
